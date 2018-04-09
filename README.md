@@ -7,4 +7,4 @@ As assignment from SCC-0215 - File Organization, at University of Sao Paulo, we'
 
 ## Contributors
 
-@tiagotriques, @fabioaromanini e @mauriciosobrinho.
+@lekonjak, @tiagotriques, @fabioaromanini e @mauriciosobrinho.
