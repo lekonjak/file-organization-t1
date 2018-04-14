@@ -1,0 +1,53 @@
+---
+title: Trabalho Organização de Arquivos
+output: 
+  pdf_document:
+    latex_engine: xelatex
+---
+
+\tableofcontents
+
+# Seção 1 - Leitura de dados
+
+## Algoritmo em alto nível
+lê de input.csv e armazena em ram
+
+## Decisões de projeto
+isso ai
+
+# Seção 2 - Recuperação de dados
+
+retorna o registro aí mermão
+
+# Seção 3 - Busca por critério
+
+buscar todos registros que contenham dado 
+
+# Seção 4 - Busca por RRN
+
+fseek(rrn * sizeof(registro))
+
+fread(sizeof(registro)
+
+print(registro)
+
+# Seção 5 - Remoção lógica de registros
+
+marcar registro como inutilizado - * - e armazenar rrn na pilha de registros removidos
+
+# Seção 6 - Inserção de novos registros
+
+inserir primeiramente nos espaços vazios
+
+# Seção 7 - Atualização dos campos do registro
+
+procurar pelo registro: se existir, substituir, caso contrario mostrar mensagem de erro
+
+# Seção 8 - Compactação (desfragmentação)
+
+apagamos os dados antigos e reescrevemos eles em uma nova estrutura\\
+de dados
+
+# Seção 9 - Pilha dos RRNs removidos
+
+printamos os bagulhos, mermão

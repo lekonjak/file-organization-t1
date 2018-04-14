@@ -15,3 +15,5 @@ char *readline(void);
 /* Reads a line from stdin until (\n|EOF)
  */
 char *freadline(FILE *fp);
+
+char **split(char *string, int *nFields);

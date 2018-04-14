@@ -1,0 +1,25 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+Header	tad.h	/^typedef struct header Header;$/;"	t	typeref:struct:header
+Registro	tad.h	/^typedef struct registro Registro;$/;"	t	typeref:struct:registro
+codINEP	tad.c	/^	int codINEP;		\/\/4 bytes$/;"	m	struct:registro	file:
+dataAtiv	tad.c	/^	char dataAtiv[10];  \/\/10 bytes$/;"	m	struct:registro	file:
+false	utils.h	/^	false, true,$/;"	e	enum:__anon1
+freadline	utils.c	/^char *freadline(FILE *fp) {$/;"	f
+header	tad.c	/^struct header {$/;"	s	file:
+main	main.c	/^int main(int argc, char *argv[]) {$/;"	f
+municipio	tad.c	/^	char *municipio;	\/\/8 bytes$/;"	m	struct:registro	file:
+nomeEscola	tad.c	/^	char *nomeEscola;   \/\/8 bytes$/;"	m	struct:registro	file:
+prestadora	tad.c	/^	char *prestadora;	\/\/8 bytes$/;"	m	struct:registro	file:
+readFromFileWriteToFile	tad.c	/^void readFromFileWriteToFile(char *filename) {$/;"	f
+readline	utils.c	/^char *readline(void) {$/;"	f
+registro	tad.c	/^struct registro {$/;"	s	file:
+split	utils.c	/^char **split(char *string, int *nFields) {$/;"	f
+stackTop	tad.c	/^	int stackTop; \/\/🔝$/;"	m	struct:header	file:
+status	tad.c	/^	char status;$/;"	m	struct:header	file:
+true	utils.h	/^	false, true,$/;"	e	enum:__anon1
+uf	tad.c	/^	char uf[2]; 		\/\/2 bytes$/;"	m	struct:registro	file:

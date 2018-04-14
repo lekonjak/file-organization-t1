@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "tad.h"
+
 int main(int argc, char *argv[]) {
 	//Frescurada
 	if(argc < 2) {
@@ -18,6 +20,7 @@ int main(int argc, char *argv[]) {
 
 	switch(op) {
 		case 1:
+			readFromFileWriteToFile(argv[2]);
 			break;
 		case 2:
 			break;
