@@ -8,4 +8,4 @@ CRUD is an acronym to four basic storage operations: Create, Read, Update and De
 
 ## Contributors
 
-@lekonjak, @tiagotriques, @fabioaromanini e @mauriciosobrinho.
+@lekonjak, @tiagotriques, @fabioaromanini e ~~@mauriciosobrinho~~ @enzobjm.

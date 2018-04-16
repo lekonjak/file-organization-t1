@@ -18,7 +18,7 @@ prestadora	tad.c	/^	char *prestadora;	\/\/8 bytes$/;"	m	struct:registro	file:
 readFromFileWriteToFile	tad.c	/^void readFromFileWriteToFile(char *filename) {$/;"	f
 readline	utils.c	/^char *readline(void) {$/;"	f
 registro	tad.c	/^struct registro {$/;"	s	file:
-split	utils.c	/^char **split(char *string, int *nFields) {$/;"	f
+split	utils.c	/^char **split(char *string) {$/;"	f
 stackTop	tad.c	/^	int stackTop; \/\/🔝$/;"	m	struct:header	file:
 status	tad.c	/^	char status;$/;"	m	struct:header	file:
 true	utils.h	/^	false, true,$/;"	e	enum:__anon1
