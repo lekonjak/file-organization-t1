@@ -16,4 +16,4 @@ char *readline(void);
  */
 char *freadline(FILE *fp);
 
-char **split(char *string, int *nFields);
+char **split(char *string);

@@ -54,10 +54,45 @@ char *freadline(FILE *fp) {
 /* We already have a function to read an entire line from a file
  * I don't think we need to make another to read each field from the csv file
  * Just take the line previously read and split it at ';'
- *
- * Not sure if nFields is really needed: all registers (?) will have at most 6 fields.
+ * 
+ * strtok doesn't work if we have ';;'. It just skips this "token" and messes up
+ * everything else
  */
-char **split(char *string, int *nFields) {
+char **split(char *string) {
+	char **tokens = NULL;
+	char *token = NULL;
+	
+	/*
+	 * prestadora	dataAtiv	codINEP		nomeEscola				municipio	uf
+	 * CTBC;		18/09/2009;	31031917;	EM PERCILIA LEONARDO;	ARAUJOS;	MG
+	 */
+	int i = 0;
+	while((token = strsep(&string, ";")) != NULL) {
+		switch(i) {
+			case 0:
+				printf("prestadora ");
+				break;
+			case 1:
+				printf("dataAtiv ");
+				break;
+			case 2:
+				printf("codINEP ");
+				break;
+			case 3:
+				printf("nomeEscola ");
+				break;
+			case 4:
+				printf("municipio ");
+				break;
+			case 5:
+				printf("uf ");
+				break;
+		}
+		
+		printf(">%s<\n", token);
 
+		i++;
+	}
+	
 	return tokens;
 }

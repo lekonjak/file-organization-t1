@@ -50,26 +50,19 @@ void readFromFileWriteToFile(char *filename) {
 		return;
 	}
 		
-	int nFields = 0;
 	char *string = NULL;
 	char **fields = NULL;
 
 	while(!feof(infile)) {
-		fprintf(stderr, "Entrei na porra do while(!feof(fp))\n");
 		string = freadline(infile);
-		fields = split(string, &nFields);
 
-		fprintf(stderr, "A porra de field count is %d\n", nFields);
-		for(int i = 0; i < nFields; i++) {
-			fprintf(stderr, "field %d -> >%s<\n", i, fields[i]);
-		}
+		//freadline returns null if it is EOF
+		if(string != NULL)
+			fields = split(string);
 
-		//Liberar memória alocada
-		for(int i = 0; i < nFields; i++) {
-			free(fields[i]);
-		}
-		free(fields);
-		free(string);
+		//freadline returns null if it is EOF
+		if(string != NULL)
+			free(string);
 	}
 
 	//Fechar arquivos de entrada e saída	

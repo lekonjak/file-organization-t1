@@ -5,6 +5,6 @@ compile:
 run:
 	./programaTrab1
 dcompile:
-	gcc -o programaTrab1 main.c src/*.c -D DEBUG -g -Wall -Wextra
+	gcc -o programaTrab1 src/*.c -D DEBUG -g -Wall -Wextra
 drun:
 	valgrind ./programaTrab1
