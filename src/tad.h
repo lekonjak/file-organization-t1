@@ -8,8 +8,7 @@ typedef struct header Header;
 
 void csv2bin(void);
 void bin2out(void);
-void bin2outGrep(char *category, void *element);
-void bin2outRRN(int RRN);
+void bin2outGrep(char *category, void *element, (*cmp)(void*, void*));
 void bin2trashRRN(int RRN);
 void add2bin(char *argv[]);
 void updateBin(char *argv[]);

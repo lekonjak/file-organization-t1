@@ -71,3 +71,10 @@ void csv2bin(char *filename) {
 
 	return;
 }
+
+
+void bin2outGrep(char *category, void *element, (*cmp)(void *, void *)){
+    
+
+}
+
