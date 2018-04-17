@@ -14,7 +14,10 @@ int main(int argc, char *argv[]) {
 	}
 
 	int op = atoi(argv[1]);
-
+/*
+ *  
+ *  if necessary char *strClear(char *s);
+ * */
 	switch(op) {
 		case 1:
 			csv2bin(argv[2]);

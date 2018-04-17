@@ -86,7 +86,7 @@ void bin2out(void) {
     fp = fopen("output.dat", "r");
     fseek(fp, offset, SEEK_SET);
 
-    while(fpeek(fp)){       // nao esquecer de resolver saporrinha
+    while(fpeek(fp)){      
         fread(&r.codINEP, sizeof(int), 1, fp);
         fread(&r.dataAtiv, sizeof(char)*10, 1, fp);
         fread(&r.uf, sizeof(char)*2, 1, fp);
@@ -109,27 +109,7 @@ void bin2out(void) {
     fclose(fp);
     return;
 }
-/*
-	// Campos de tamanho fixo
-	int codINEP;		//4 bytes
-	char dataAtiv[10];  //10 bytes
-	char uf[2]; 		//2 bytes
 
-	//Campos de tamanho variável
-	char *nomeEscola;   //8 bytes
-	char *municipio;	//8 bytes
-	char *prestadora;	//8 bytes
-};
-
-struct header {
-	char status;
-	int stackTop; //🔝
-};
-
- * Especificação do csv:
- * prestadora	dataAtiv	codINEP		nomeEscola				municipio	uf
- * CTBC;		18/09/2009;	31031917;	EM PERCILIA LEONARDO;	ARAUJOS;	MG
-*/
 int fpeek(FILE *fp){
     char test = (char)fgetc(fp);
     ungetc( test, fp);
@@ -142,7 +122,43 @@ void catReg(Registro *reg, int sizeEscola, int sizeMunicipio, int sizePrestadora
             , sizeMunicipio, reg->municipio, sizePrestadora, reg->prestadora);
 }
 void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)){
-    
+    FILE *fp;
+    Registro r;
+    int sizeEscola ,sizeMunicipio ,sizePrestadora;
+	long offset = 5;
+    void *this;
+    fp = fopen("output.dat", "r");
+    fseek(fp, offset, SEEK_SET);
+
+    while(fpeek(fp)){       
+        fread(&r.codINEP, sizeof(int), 1, fp);
+        fread(&r.dataAtiv, sizeof(char)*10, 1, fp);
+        fread(&r.uf, sizeof(char)*2, 1, fp);
+        fread(&sizeEscola, sizeof(int), 1, fp);
+            r.nomeEscola = (char*) malloc ( sizeof(char)*sizeEscola+1);    
+        fread(&r.nomeEscola, sizeof(char)*sizeEscola, 1, fp);
+        fread(&sizeMunicipio, sizeof(int), 1, fp);
+            r.municipio = (char*) malloc ( sizeof(char)*sizeMunicipio+1);    
+        fread(&r.municipio, sizeof(char)*sizeMunicipio, 1, fp);
+        fread(&sizePrestadora, sizeof(int), 1, fp);
+            r.prestadora = (char*) malloc ( sizeof(char)*sizePrestadora+1);    
+        fread(&r.prestadora, sizeof(char)*sizePrestadora, 1, fp);
+        
+
+        if(cmp(element, this)){
+            //work
+        } 
+        catReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
+
+        free(r.nomeEscola);
+        free(r.municipio);
+        free(r.prestadora);
+            
+    }
+
+    printf("Registro inexistente.");
+    fclose(fp);
+    return;
 }
 
 void *selectCmp(char cat){
@@ -155,6 +171,16 @@ int intCmp(void *a, void *b){
 
 int sstrCmp(void *a, void *b){
     return strcmp((char*)a, (char*)b);
+}
+char *strClear(char *s){
+    char *out = (char*) malloc (sizeof(char)*(strlen(s)-2));
+    int i;
+    for( i = 1; s[i] != '\''; i++){
+        out[i-1] = s[i];
+    }
+    out[i] = '\0';
+
+    return out;
 }
 
 void bin2outRRN(int RRN) {
