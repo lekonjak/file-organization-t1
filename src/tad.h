@@ -6,4 +6,12 @@ typedef struct registro Registro;
 
 typedef struct header Header;
 
-void readFromFileWriteToFile(char *filename);
+void csv2bin(void);
+void bin2out(void);
+void bin2outGrep(char *category, void *element);
+void bin2outRRN(int RRN);
+void bin2trashRRN(int RRN);
+void add2bin(char *argv[]);
+void updateBin(char *argv[]);
+void binDefrag(void);
+void recBin(void);

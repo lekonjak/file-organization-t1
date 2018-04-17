@@ -31,7 +31,7 @@ struct header {
  * prestadora	dataAtiv	codINEP		nomeEscola				municipio	uf
  * CTBC;		18/09/2009;	31031917;	EM PERCILIA LEONARDO;	ARAUJOS;	MG
  */
-void readFromFileWriteToFile(char *filename) {
+void csv2bin(char *filename) {
 	fprintf(stderr, "Nome do arquivo para abrir: >%s<\n", filename);
 
 	FILE *infile = NULL, *outfile = NULL;
