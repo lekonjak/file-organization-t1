@@ -1,11 +1,8 @@
 /* Botem teus nomes aqui, bando de bagual
  *
- *
+ * Ricardo A Araujo - 9364890
  * Tiago Esperança Triques - 9037713
  */
-
-#include <stdlib.h>
-#include <stdio.h>
 
 #include "tad.h"
 
