@@ -72,9 +72,25 @@ void csv2bin(char *filename) {
 	return;
 }
 
+void bin2out(void);
 
-void bin2outGrep(char *category, void *element, (*cmp)(void *, void *)){
+void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)){
     
 
 }
+void *selectCmp(char cat){
+    return cat == 'c' ? &intCmp : &sstrCmp;
+}
+int intCmp(void *a, void *b){
+    return *((int*)(a)) == *((int *)(b)) ? 0 : 1;
+}
+int sstrCmp(void *a, void *b){
+    return strcmp((char*)a, (char*)b);
+}
 
+void bin2outRRN(int RRN);
+void bin2trashRRN(int RRN);
+void add2bin(char *argv[]);
+void updateBin(char *argv[]);
+void binDefrag(void);
+void recBin(void);

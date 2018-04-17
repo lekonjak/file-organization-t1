@@ -23,16 +23,16 @@ int main(int argc, char *argv[]) {
 			csv2bin(argv[2]);
 			break;
 		case 2:
-			bin2out(void);
+			bin2out();
             break;
 		case 3:
-            bin2outGrep(argv[2], argv[3]);
+            bin2outGrep(argv[2], argv[3], selectCmp(argv[2][0]) );
 			break;
 		case 4:
-            bin2outRRN(argv[2]);
+            bin2outRRN(atoi(argv[2]));
 			break;
 		case 5:
-            bin2trashRRN(argv[2]);
+            bin2trashRRN(atoi(argv[2]));
 			break;
 		case 6:
             add2bin(argv);
@@ -41,10 +41,10 @@ int main(int argc, char *argv[]) {
             updateBin(argv);
 			break;
 		case 8:
-            binDefrag(void);
+            binDefrag();
 			break;
 		case 9:
-            recBin(void);
+            recBin();
 			break;
 	}
 
