@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "tad.h"
+
 enum {
 	false, true,
 };

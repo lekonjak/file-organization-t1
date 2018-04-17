@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "tad.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -61,38 +62,22 @@ char *freadline(FILE *fp) {
 char **split(char *string) {
 	char **tokens = NULL;
 	char *token = NULL;
+
+    tokens = calloc(6, sizeof(char *));
+
+    for(int i = 0; i < 6; i++)
+        tokens[i] = calloc(87, sizeof(char));
 	
-	/*
+    /*
 	 * prestadora	dataAtiv	codINEP		nomeEscola				municipio	uf
 	 * CTBC;		18/09/2009;	31031917;	EM PERCILIA LEONARDO;	ARAUJOS;	MG
 	 */
 	int i = 0;
 	while((token = strsep(&string, ";")) != NULL) {
-		switch(i) {
-			case 0:
-				printf("prestadora ");
-				break;
-			case 1:
-				printf("dataAtiv ");
-				break;
-			case 2:
-				printf("codINEP ");
-				break;
-			case 3:
-				printf("nomeEscola ");
-				break;
-			case 4:
-				printf("municipio ");
-				break;
-			case 5:
-				printf("uf ");
-				break;
-		}
-		
-		printf(">%s<\n", token);
+        strcpy(tokens[i], token);
 
 		i++;
-	}
-	
-	return tokens;
+    }
+
+    return tokens;
 }

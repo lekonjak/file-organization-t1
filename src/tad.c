@@ -57,12 +57,17 @@ void csv2bin(char *filename) {
 		string = freadline(infile);
 
 		//freadline returns null if it is EOF
-		if(string != NULL)
+		if(string != NULL) {
 			fields = split(string);
 
-		//freadline returns null if it is EOF
-		if(string != NULL)
+            for(int i = 0; i < 6; i++)
+                printf("fields[%d] = [%s]\n", i, fields[i]);
+        
+            for(int i = 0; i < 6; i++)
+                free(fields[i]);
+            free(fields);
 			free(string);
+        }
 	}
 
 	//Fechar arquivos de entrada e saída	
@@ -72,25 +77,46 @@ void csv2bin(char *filename) {
 	return;
 }
 
-void bin2out(void);
+void bin2out(void) {
+
+}
 
 void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)){
     
-
 }
+
 void *selectCmp(char cat){
     return cat == 'c' ? &intCmp : &sstrCmp;
 }
+
 int intCmp(void *a, void *b){
     return *((int*)(a)) == *((int *)(b)) ? 0 : 1;
 }
+
 int sstrCmp(void *a, void *b){
     return strcmp((char*)a, (char*)b);
 }
 
-void bin2outRRN(int RRN);
-void bin2trashRRN(int RRN);
-void add2bin(char *argv[]);
-void updateBin(char *argv[]);
-void binDefrag(void);
-void recBin(void);
+void bin2outRRN(int RRN) {
+
+}
+
+void bin2trashRRN(int RRN) {
+
+}
+
+void add2bin(char *argv[]) {
+
+}
+
+void updateBin(char *argv[]) {
+
+}
+
+void binDefrag(void) {
+
+}
+
+void recBin(void) {
+
+}
