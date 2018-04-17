@@ -124,9 +124,9 @@ void catReg(Registro *reg, int sizeEscola, int sizeMunicipio, int sizePrestadora
 void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)){
     FILE *fp;
     Registro r;
-    int sizeEscola ,sizeMunicipio ,sizePrestadora;
+    int sizeEscola ,sizeMunicipio ,sizePrestadora, flag = 0;
 	long offset = 5;
-    void *this;
+    void *this = NULL;
     fp = fopen("output.dat", "r");
     fseek(fp, offset, SEEK_SET);
 
@@ -144,11 +144,26 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)){
             r.prestadora = (char*) malloc ( sizeof(char)*sizePrestadora+1);    
         fread(&r.prestadora, sizeof(char)*sizePrestadora, 1, fp);
         
+        this = category[0] == 'c' ? &r.codINEP :\
+                category[0] == 'd' ? &r.dataAtiv:\
+                 category[0] == 'u' ? &r.uf:\
+                  category[0] == 'n' ? &r.nomeEscola:\
+                   category[0] == 'p' ? &r.prestadora:\
+                    category[0] == 'm' ? &r.municipio: (void*)NULL; // precompilator gave me no choice, i had to cast do avoid warning 
+        
+        if( this == NULL){
+            fclose(fp);
+            free(r.nomeEscola);
+            free(r.municipio);
+            free(r.prestadora);
+            printf("Falha no processamento do arquivo.\n");
+            return;
+        }
 
-        if(cmp(element, this)){
-            //work
+        if(!cmp(element, this)){
+            catReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
+            flag++;
         } 
-        catReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
 
         free(r.nomeEscola);
         free(r.municipio);
@@ -156,7 +171,7 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)){
             
     }
 
-    printf("Registro inexistente.");
+    if(!flag) printf("Registro inexistente.\n");
     fclose(fp);
     return;
 }
