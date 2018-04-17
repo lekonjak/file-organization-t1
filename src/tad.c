@@ -199,6 +199,41 @@ char *strClear(char *s){
 }
 
 void bin2outRRN(int RRN) {
+    /*
+     *  we need to search by RRN not directly, but dinamically - next step is to write a search function
+     * */
+    FILE *fp;
+    Registro r;
+    int sizeEscola ,sizeMunicipio ,sizePrestadora;
+	long offset = 5;
+
+    fp = fopen("output.dat", "r");
+    fseek(fp, offset + RRN*87, SEEK_SET);
+    if(!fpeek(fp)){
+        fread(&r.codINEP, sizeof(int), 1, fp);
+        fread(&r.dataAtiv, sizeof(char)*10, 1, fp);
+        fread(&r.uf, sizeof(char)*2, 1, fp);
+        fread(&sizeEscola, sizeof(int), 1, fp);
+            r.nomeEscola = (char*) malloc ( sizeof(char)*sizeEscola+1);    
+        fread(&r.nomeEscola, sizeof(char)*sizeEscola, 1, fp);
+        fread(&sizeMunicipio, sizeof(int), 1, fp);
+            r.municipio = (char*) malloc ( sizeof(char)*sizeMunicipio+1);    
+        fread(&r.municipio, sizeof(char)*sizeMunicipio, 1, fp);
+        fread(&sizePrestadora, sizeof(int), 1, fp);
+            r.prestadora = (char*) malloc ( sizeof(char)*sizePrestadora+1);    
+        fread(&r.prestadora, sizeof(char)*sizePrestadora, 1, fp);
+      
+        catReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
+
+        free(r.nomeEscola);
+        free(r.municipio);
+        free(r.prestadora);
+    }else{
+        printf("Registro inexistente.\n");
+    }
+    
+    fclose(fp);
+    return;
 
 }
 
