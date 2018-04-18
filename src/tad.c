@@ -135,20 +135,20 @@ void csv2bin(char *filename) {
     //Fechar arquivos de entrada e saída
     fclose(infile);
     fclose(outfile);
-
-    return;
 }
 
 void bin2out(void) {
     FILE *fp;
-    Registro r;
+    Registro r = {0};
     int sizeEscola, sizeMunicipio, sizePrestadora;
     long offset = 5;
 
     fp = fopen("output.dat", "rb");
     fseek(fp, offset, SEEK_SET);
 
-    while(fpeek(fp)){
+    //while(fpeek(fp)) {
+    //fpeek isn't working properly
+    while(!feof(fp)) {
         fread(&r.codINEP, sizeof(int), 1, fp);
         fread(r.dataAtiv, sizeof(char)*10, 1, fp);
         fread(r.uf, sizeof(char)*2, 1, fp);
@@ -172,29 +172,32 @@ void bin2out(void) {
     return;
 }
 
-int fpeek(FILE *fp){
+int fpeek(FILE *fp) {
     char test = (char)fgetc(fp);
     ungetc( test, fp);
     if(test == EOF) return 0;
     return 1;
 }
 
-void catReg(Registro *reg, int sizeEscola, int sizeMunicipio, int sizePrestadora){
-    fprintf(stdout,"%d %s %s %d %s %d %s %d %s\n",reg->codINEP, reg->dataAtiv, reg->uf, sizeEscola, reg->nomeEscola \
-            , sizeMunicipio, reg->municipio, sizePrestadora, reg->prestadora);
+void catReg(Registro *reg, int sizeEscola, int sizeMunicipio, int sizePrestadora) {
+    fprintf(stdout, "%d %s %s %d %s %d %s %d %s\n", \
+            reg->codINEP, reg->dataAtiv, reg->uf, sizeEscola,\
+            reg->nomeEscola , sizeMunicipio, reg->municipio, \
+            sizePrestadora, reg->prestadora);
 }
 
-void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)){
+void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
     FILE *fp;
-    Registro r;
+    Registro r = {0};
 
-    int sizeEscola ,sizeMunicipio ,sizePrestadora, flag = 0;
+    int sizeEscola, sizeMunicipio, sizePrestadora, flag = 0;
 	long offset = 5;
     void *this = NULL;
-    fp = fopen("output.dat", "r");
+    fp = fopen("output.dat", "rb");
     fseek(fp, offset, SEEK_SET);
 
-    while(fpeek(fp)){
+    //while(fpeek(fp)) {
+    while(!feof(fp)) {
         fread(&r.codINEP, sizeof(int), 1, fp);
         fread(&r.dataAtiv, sizeof(char)*10, 1, fp);
         fread(&r.uf, sizeof(char)*2, 1, fp);
@@ -215,7 +218,7 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)){
                    category[0] == 'p' ? &r.prestadora:\
                     category[0] == 'm' ? &r.municipio: (void*)NULL; // precompilator gave me no choice, i had to cast do avoid warning
 
-        if( this == NULL){
+        if( this == NULL) {
             fclose(fp);
             free(r.nomeEscola);
             free(r.municipio);
@@ -224,7 +227,7 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)){
             return;
         }
 
-        if(!cmp(element, this)){
+        if(!cmp(element, this)) {
             catReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
             flag++;
         }
@@ -240,23 +243,23 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)){
     return;
 }
 
-void *selectCmp(char cat){
+void *selectCmp(char cat) {
     return cat == 'c' ? &intCmp : &sstrCmp;
 }
 
-int intCmp(void *a, void *b){
+int intCmp(void *a, void *b) {
     return *((int*)(a)) == *((int *)(b)) ? 0 : 1;
 }
 
-int sstrCmp(void *a, void *b){
+int sstrCmp(void *a, void *b) {
     return strcmp((char*)a, (char*)b);
 }
 
-char *strClear(char *s){
+char *strClear(char *s) {
     char *out = (char*) malloc (sizeof(char)*(strlen(s)-2));
     int i;
 
-    for( i = 1; s[i] != '\''; i++){
+    for(i = 1; s[i] != '\''; i++) {
         out[i-1] = s[i];
     }
     out[i] = '\0';
@@ -275,18 +278,18 @@ void bin2outRRN(int RRN) {
 
     fp = fopen("output.dat", "r");
     fseek(fp, offset + RRN*87, SEEK_SET);
-    if(!fpeek(fp)){
+    if(!fpeek(fp)) {
         fread(&r.codINEP, sizeof(int), 1, fp);
         fread(&r.dataAtiv, sizeof(char)*10, 1, fp);
         fread(&r.uf, sizeof(char)*2, 1, fp);
         fread(&sizeEscola, sizeof(int), 1, fp);
-            r.nomeEscola = (char*) malloc ( sizeof(char)*sizeEscola+1);
+            r.nomeEscola = (char*) malloc (sizeof(char)*sizeEscola+1);
         fread(&r.nomeEscola, sizeof(char)*sizeEscola, 1, fp);
         fread(&sizeMunicipio, sizeof(int), 1, fp);
-            r.municipio = (char*) malloc ( sizeof(char)*sizeMunicipio+1);
+            r.municipio = (char*) malloc (sizeof(char)*sizeMunicipio+1);
         fread(&r.municipio, sizeof(char)*sizeMunicipio, 1, fp);
         fread(&sizePrestadora, sizeof(int), 1, fp);
-            r.prestadora = (char*) malloc ( sizeof(char)*sizePrestadora+1);
+            r.prestadora = (char*) malloc (sizeof(char)*sizePrestadora+1);
         fread(&r.prestadora, sizeof(char)*sizePrestadora, 1, fp);
 
         catReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
@@ -294,7 +297,7 @@ void bin2outRRN(int RRN) {
         free(r.nomeEscola);
         free(r.municipio);
         free(r.prestadora);
-    }else{
+    } else {
         printf("Registro inexistente.\n");
     }
 
