@@ -9,15 +9,18 @@ output:
 
 # Seção 1 - Leitura de dados
 
-## Algoritmo em alto nível
-lê de input.csv e armazena em ram
+## csv2bin
 
-## Decisões de projeto
-isso ai
+A função lê uma linha de cada vez do arquivo csv com freadline e separa cada campo com split - (ambas em utils.c)
+e escreve os dados em outro arquivo binário. 
+Uma mensagem de erro é printada caso o arquivo de entrada e/ou saída não consiga ser aberto.
 
-# Seção 2 - Recuperação de dados
+A função freadline (utils.c) retorna a linha lida do arquivo de entrada
+A função split (utils.c) separa cada um dos campos da linha com strsep (man 3 strsep)
+Ps: strsep é mais "robusta" que strtok pois suporta delimitadores consecutivos.
+No arquivo de entrada, ";;" indica um campo "null". Usando strtok os campos 'null' seriam ignorados
 
-retorna o registro aí mermão
+# Seção 2 - Recuperação de todos os registros
 
 # Seção 3 - Busca por critério
 
