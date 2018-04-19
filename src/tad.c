@@ -137,6 +137,25 @@ void csv2bin(char *filename) {
     fclose(outfile);
 }
 
+int eof(FILE *fp) {
+    int cur = ftell(fp);
+
+    fseek(fp, 0, SEEK_END);
+    int max = ftell(fp);
+
+    printf("FILE SIZE IS %d\n", max);
+
+    fseek(fp, cur, SEEK_SET);
+
+    return max;
+}
+
+int workingfeof(FILE *fp, int size) {
+    if(ftell(fp) < size)
+        return 0;
+    return 1;
+}
+
 void bin2out(void) {
     FILE *fp;
     Registro r = {0};
@@ -146,21 +165,23 @@ void bin2out(void) {
     fp = fopen("output.dat", "rb");
     fseek(fp, offset, SEEK_SET);
 
-    //while(fpeek(fp)) {
-    //fpeek isn't working properly
-    while(!feof(fp)) {
+    int max = eof(fp);
+
+    while(!workingfeof(fp, max)) {
         fread(&r.codINEP, sizeof(int), 1, fp);
         fread(r.dataAtiv, sizeof(char)*10, 1, fp);
         fread(r.uf, sizeof(char)*2, 1, fp);
         fread(&sizeEscola, sizeof(int), 1, fp);
-        r.nomeEscola = (char*) malloc ( sizeof(char)*sizeEscola+1);
+        r.nomeEscola = (char*) calloc (sizeEscola+1, sizeof(char));
         fread(r.nomeEscola, sizeof(char)*sizeEscola, 1, fp);
         fread(&sizeMunicipio, sizeof(int), 1, fp);
-        r.municipio = (char*) malloc ( sizeof(char)*sizeMunicipio+1);
+        r.municipio = (char*) calloc (sizeMunicipio+1, sizeof(char));
         fread(r.municipio, sizeof(char)*sizeMunicipio, 1, fp);
         fread(&sizePrestadora, sizeof(int), 1, fp);
-        r.prestadora = (char*) malloc ( sizeof(char)*sizePrestadora+1);
+        r.prestadora = (char*) calloc (sizePrestadora+1, sizeof(char));
         fread(r.prestadora, sizeof(char)*sizePrestadora, 1, fp);
+
+        sizePrestadora = strlen(r.prestadora);
 
         catReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
 
@@ -170,13 +191,6 @@ void bin2out(void) {
     }
     fclose(fp);
     return;
-}
-
-int fpeek(FILE *fp) {
-    char test = (char)fgetc(fp);
-    ungetc( test, fp);
-    if(test == EOF) return 0;
-    return 1;
 }
 
 void catReg(Registro *reg, int sizeEscola, int sizeMunicipio, int sizePrestadora) {
@@ -196,20 +210,21 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
     fp = fopen("output.dat", "rb");
     fseek(fp, offset, SEEK_SET);
 
-    //while(fpeek(fp)) {
-    while(!feof(fp)) {
+    int max = eof(fp);
+
+    while(!workingfeof(fp, max)) {
         fread(&r.codINEP, sizeof(int), 1, fp);
-        fread(&r.dataAtiv, sizeof(char)*10, 1, fp);
-        fread(&r.uf, sizeof(char)*2, 1, fp);
+        fread(r.dataAtiv, sizeof(char)*10, 1, fp);
+        fread(r.uf, sizeof(char)*2, 1, fp);
         fread(&sizeEscola, sizeof(int), 1, fp);
-        r.nomeEscola = (char*) malloc ( sizeof(char)*sizeEscola+1);
-        fread(&r.nomeEscola, sizeof(char)*sizeEscola, 1, fp);
+        r.nomeEscola = (char*) malloc (sizeof(char)*sizeEscola+1);
+        fread(r.nomeEscola, sizeof(char)*sizeEscola, 1, fp);
         fread(&sizeMunicipio, sizeof(int), 1, fp);
-        r.municipio = (char*) malloc ( sizeof(char)*sizeMunicipio+1);
-        fread(&r.municipio, sizeof(char)*sizeMunicipio, 1, fp);
+        r.municipio = (char*) malloc (sizeof(char)*sizeMunicipio+1);
+        fread(r.municipio, sizeof(char)*sizeMunicipio, 1, fp);
         fread(&sizePrestadora, sizeof(int), 1, fp);
-        r.prestadora = (char*) malloc ( sizeof(char)*sizePrestadora+1);
-        fread(&r.prestadora, sizeof(char)*sizePrestadora, 1, fp);
+        r.prestadora = (char*) malloc (sizeof(char)*sizePrestadora+1);
+        fread(r.prestadora, sizeof(char)*sizePrestadora, 1, fp);
 
         this = category[0] == 'c' ? &r.codINEP :\
                 category[0] == 'd' ? &r.dataAtiv:\
@@ -235,7 +250,6 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
         free(r.nomeEscola);
         free(r.municipio);
         free(r.prestadora);
-
     }
 
     if(!flag) printf("Registro inexistente.\n");
@@ -276,9 +290,11 @@ void bin2outRRN(int RRN) {
     int sizeEscola ,sizeMunicipio ,sizePrestadora;
 	long offset = 5;
 
+
     fp = fopen("output.dat", "r");
+    int max = eof(fp);
     fseek(fp, offset + RRN*87, SEEK_SET);
-    if(!fpeek(fp)) {
+    if(!workingfeof(fp, max)) {
         fread(&r.codINEP, sizeof(int), 1, fp);
         fread(&r.dataAtiv, sizeof(char)*10, 1, fp);
         fread(&r.uf, sizeof(char)*2, 1, fp);

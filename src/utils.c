@@ -55,7 +55,7 @@ char *freadline(FILE *fp) {
 /* We already have a function to read an entire line from a file
  * I don't think we need to make another to read each field from the csv file
  * Just take the line previously read and split it at ';'
- * 
+ *
  * strtok doesn't work if we have ';;'. It just skips this "token" and messes up
  * everything else
  */
@@ -67,16 +67,24 @@ char **split(char *string) {
 
     for(int i = 0; i < 6; i++)
         tokens[i] = calloc(87, sizeof(char));
-	
+
     /*
 	 * prestadora	dataAtiv	codINEP		nomeEscola				municipio	uf
 	 * CTBC;		18/09/2009;	31031917;	EM PERCILIA LEONARDO;	ARAUJOS;	MG
 	 */
 	int i = 0;
 	while((token = strsep(&string, ";")) != NULL) {
-        strcpy(tokens[i], token);
+        //If the fixed size values are null
+        if(!strcmp(token, "")) {
+            if(i == 1)
+                strcpy(tokens[1], "0000000000");
+            if(i == 5)
+                strcpy(tokens[5], "00");
+        } else {
+            strcpy(tokens[i], token);
+        }
 
-		i++;
+        i++;
     }
 
     return tokens;
