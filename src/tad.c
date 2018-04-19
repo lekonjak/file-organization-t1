@@ -116,7 +116,6 @@ void csv2bin(char *filename) {
             fwrite(&aux, sizeof(int), 1, outfile);
             fwrite(r.municipio, aux*sizeof(char), 1, outfile);
 
-            //Gambs
             aux = 87 - regSize;
             fwrite(&aux, sizeof(int), 1, outfile);
             fwrite(r.prestadora, aux*sizeof(char), 1, outfile);
@@ -143,8 +142,6 @@ int eof(FILE *fp) {
     fseek(fp, 0, SEEK_END);
     int max = ftell(fp);
 
-    printf("FILE SIZE IS %d\n", max);
-
     fseek(fp, cur, SEEK_SET);
 
     return max;
@@ -169,17 +166,17 @@ void bin2out(void) {
 
     while(!workingfeof(fp, max)) {
         fread(&r.codINEP, sizeof(int), 1, fp);
-        fread(r.dataAtiv, sizeof(char)*10, 1, fp);
-        fread(r.uf, sizeof(char)*2, 1, fp);
+        fread(r.dataAtiv, 10*sizeof(char), 1, fp);
+        fread(r.uf, 2*sizeof(char), 1, fp);
         fread(&sizeEscola, sizeof(int), 1, fp);
-        r.nomeEscola = (char*) calloc (sizeEscola+1, sizeof(char));
-        fread(r.nomeEscola, sizeof(char)*sizeEscola, 1, fp);
+        r.nomeEscola = calloc (sizeEscola+1, sizeof(char));
+        fread(r.nomeEscola, sizeEscola*sizeof(char), 1, fp);
         fread(&sizeMunicipio, sizeof(int), 1, fp);
-        r.municipio = (char*) calloc (sizeMunicipio+1, sizeof(char));
-        fread(r.municipio, sizeof(char)*sizeMunicipio, 1, fp);
+        r.municipio = calloc (sizeMunicipio+1, sizeof(char));
+        fread(r.municipio, sizeMunicipio*sizeof(char), 1, fp);
         fread(&sizePrestadora, sizeof(int), 1, fp);
-        r.prestadora = (char*) calloc (sizePrestadora+1, sizeof(char));
-        fread(r.prestadora, sizeof(char)*sizePrestadora, 1, fp);
+        r.prestadora = calloc (sizePrestadora+1, sizeof(char));
+        fread(r.prestadora, sizePrestadora*sizeof(char), 1, fp);
 
         sizePrestadora = strlen(r.prestadora);
 
@@ -189,14 +186,14 @@ void bin2out(void) {
         free(r.municipio);
         free(r.prestadora);
     }
+
     fclose(fp);
-    return;
 }
 
 void catReg(Registro *reg, int sizeEscola, int sizeMunicipio, int sizePrestadora) {
     fprintf(stdout, "%d %s %s %d %s %d %s %d %s\n", \
             reg->codINEP, reg->dataAtiv, reg->uf, sizeEscola,\
-            reg->nomeEscola , sizeMunicipio, reg->municipio, \
+            reg->nomeEscola, sizeMunicipio, reg->municipio, \
             sizePrestadora, reg->prestadora);
 }
 
@@ -214,8 +211,8 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
 
     while(!workingfeof(fp, max)) {
         fread(&r.codINEP, sizeof(int), 1, fp);
-        fread(r.dataAtiv, sizeof(char)*10, 1, fp);
-        fread(r.uf, sizeof(char)*2, 1, fp);
+        fread(r.dataAtiv, 10*sizeof(char), 1, fp);
+        fread(r.uf, 2*sizeof(char), 1, fp);
         fread(&sizeEscola, sizeof(int), 1, fp);
         r.nomeEscola = (char*) malloc (sizeof(char)*sizeEscola+1);
         fread(r.nomeEscola, sizeof(char)*sizeEscola, 1, fp);
@@ -226,6 +223,8 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
         r.prestadora = (char*) malloc (sizeof(char)*sizePrestadora+1);
         fread(r.prestadora, sizeof(char)*sizePrestadora, 1, fp);
 
+        sizePrestadora = strlen(r.prestadora);
+
         this = category[0] == 'c' ? &r.codINEP :\
                 category[0] == 'd' ? &r.dataAtiv:\
                  category[0] == 'u' ? &r.uf:\
@@ -233,7 +232,7 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
                    category[0] == 'p' ? &r.prestadora:\
                     category[0] == 'm' ? &r.municipio: (void*)NULL; // precompilator gave me no choice, i had to cast do avoid warning
 
-        if( this == NULL) {
+        if(this == NULL) {
             fclose(fp);
             free(r.nomeEscola);
             free(r.municipio);
@@ -252,9 +251,10 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
         free(r.prestadora);
     }
 
-    if(!flag) printf("Registro inexistente.\n");
+    if(!flag)
+        printf("Registro inexistente.\n");
+
     fclose(fp);
-    return;
 }
 
 void *selectCmp(char cat) {
@@ -270,7 +270,7 @@ int sstrCmp(void *a, void *b) {
 }
 
 char *strClear(char *s) {
-    char *out = (char*) malloc (sizeof(char)*(strlen(s)-2));
+    char *out = malloc ((strlen(s)-2)*sizeof(char));
     int i;
 
     for(i = 1; s[i] != '\''; i++) {
@@ -286,27 +286,28 @@ void bin2outRRN(int RRN) {
      *  we need to search by RRN not directly, but dinamically - next step is to write a search function
      * */
     FILE *fp;
-    Registro r;
-    int sizeEscola ,sizeMunicipio ,sizePrestadora;
+    Registro r = {0};
+    int sizeEscola, sizeMunicipio, sizePrestadora;
 	long offset = 5;
 
-
-    fp = fopen("output.dat", "r");
+    fp = fopen("output.dat", "rb");
     int max = eof(fp);
-    fseek(fp, offset + RRN*87, SEEK_SET);
+    fseek(fp, offset + (RRN*87), SEEK_SET);
     if(!workingfeof(fp, max)) {
         fread(&r.codINEP, sizeof(int), 1, fp);
-        fread(&r.dataAtiv, sizeof(char)*10, 1, fp);
-        fread(&r.uf, sizeof(char)*2, 1, fp);
+        fread(r.dataAtiv, 10*sizeof(char), 1, fp);
+        fread(r.uf, 2*sizeof(char), 1, fp);
         fread(&sizeEscola, sizeof(int), 1, fp);
-            r.nomeEscola = (char*) malloc (sizeof(char)*sizeEscola+1);
-        fread(&r.nomeEscola, sizeof(char)*sizeEscola, 1, fp);
+        r.nomeEscola = calloc(sizeEscola+1, sizeof(char));
+        fread(r.nomeEscola, sizeEscola*sizeof(char), 1, fp);
         fread(&sizeMunicipio, sizeof(int), 1, fp);
-            r.municipio = (char*) malloc (sizeof(char)*sizeMunicipio+1);
-        fread(&r.municipio, sizeof(char)*sizeMunicipio, 1, fp);
+        r.municipio = calloc(sizeMunicipio+1, sizeof(char));
+        fread(r.municipio, sizeMunicipio*sizeof(char), 1, fp);
         fread(&sizePrestadora, sizeof(int), 1, fp);
-            r.prestadora = (char*) malloc (sizeof(char)*sizePrestadora+1);
-        fread(&r.prestadora, sizeof(char)*sizePrestadora, 1, fp);
+        r.prestadora = calloc(sizePrestadora+1, sizeof(char));
+        fread(r.prestadora, sizePrestadora*sizeof(char), 1, fp);
+
+        sizePrestadora = strlen(r.prestadora);
 
         catReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
 
@@ -318,20 +319,18 @@ void bin2outRRN(int RRN) {
     }
 
     fclose(fp);
-    return;
-
 }
 
 void bin2trashRRN(int RRN) {
-
+    (void) RRN;
 }
 
 void add2bin(char *argv[]) {
-
+    (void) argv;
 }
 
 void updateBin(char *argv[]) {
-
+    (void) argv;
 }
 
 void binDefrag(void) {

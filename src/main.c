@@ -7,20 +7,20 @@
 #include "tad.h"
 
 int main(int argc, char *argv[]) {
-	//Frescurada
-	if(argc < 2) {
-		printf("Usage %s [1-5]\n", argv[0]);
-		exit(1);
-	}
+    //STFU gcc
+    (void) argc;
 
 	int op = atoi(argv[1]);
+
 /*
- *
  *  if necessary char *strClear(char *s);
  * */
 	switch(op) {
 		case 1:
-			csv2bin(argv[2]);
+            if(argv[2][0] == '\'')
+                csv2bin(strClear(argv[2]));
+            else
+                csv2bin(argv[2]);
 			break;
 		case 2:
 			bin2out();
