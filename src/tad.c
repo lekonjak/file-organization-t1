@@ -224,19 +224,25 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
         fread(r.prestadora, sizeof(char)*sizePrestadora, 1, fp);
 
         sizePrestadora = strlen(r.prestadora);
-
+#ifdef DEBUG
+        printf("Category %c", category[0]);
+        catReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
+#endif
         this = category[0] == 'c' ? &r.codINEP :\
                 category[0] == 'd' ? &r.dataAtiv:\
                  category[0] == 'u' ? &r.uf:\
                   category[0] == 'n' ? &r.nomeEscola:\
                    category[0] == 'p' ? &r.prestadora:\
-                    category[0] == 'm' ? &r.municipio: (void*)NULL; // precompilator gave me no choice, i had to cast do avoid warning
+                    category[0] == 'm' ? &r.municipio: this; // precompilator gave me no choice, i had to cast do avoid warning
 
         if(this == NULL) {
             fclose(fp);
             free(r.nomeEscola);
             free(r.municipio);
             free(r.prestadora);
+
+            category[0] == 'c' ? free(element) : "c:";
+
             printf("Falha no processamento do arquivo.\n");
             return;
         }
@@ -254,18 +260,36 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
     if(!flag)
         printf("Registro inexistente.\n");
 
+    category[0] == 'c' ? free(element) : 0;
     fclose(fp);
 }
 
+void *maybeConvert(char *c, char d){
+    if(d == 'c'){
+        int *a = (int*) malloc (sizeof(int));
+        *a = atoi(c);
+        return a;
+    }
+    return c;
+}
 void *selectCmp(char cat) {
+#ifdef DEBUG
+    printf("cmp int? %s\n", cat == 'c'? "yes" : "no");
+#endif
     return cat == 'c' ? &intCmp : &sstrCmp;
 }
 
 int intCmp(void *a, void *b) {
+#ifdef DEBUG
+    printf("comparing %d %d.... equal? %s\n", *((int*)(a)), *((int*)(b)), *((int*)(a)) == *((int *)(b)) ? "yes" : "no");
+#endif
     return *((int*)(a)) == *((int *)(b)) ? 0 : 1;
 }
 
 int sstrCmp(void *a, void *b) {
+#ifdef DEBUG
+    printf("comparing %s %s.... equal? %s\n", (char*)a, (char*)b,strcmp((char*)a, (char*)b) == 0 ? "yes" : "no");
+#endif
     return strcmp((char*)a, (char*)b);
 }
 

@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
 			bin2out();
             break;
 		case 3:
-            bin2outGrep(argv[2], argv[3], selectCmp(argv[2][0]) );
+            bin2outGrep(argv[2], maybeConvert(argv[3], argv[2][0]), argv[2][0] == '\'' ?  selectCmp(argv[2][1]) : selectCmp(argv[2][0]) );
 			break;
 		case 4:
             bin2outRRN(atoi(argv[2]));

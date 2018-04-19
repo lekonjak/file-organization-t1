@@ -19,6 +19,7 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void*, void*));
     int intCmp(void *a, void *b);
     int sstrCmp(void *a, void *b);
     char *strClear(char *s);
+    void *maybeConvert(char *c, char d);
 void bin2outRRN(int RRN);
 void bin2trashRRN(int RRN);
 void add2bin(char *argv[]);
