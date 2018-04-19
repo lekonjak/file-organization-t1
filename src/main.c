@@ -17,10 +17,7 @@ int main(int argc, char *argv[]) {
  * */
 	switch(op) {
 		case 1:
-            if(argv[2][0] == '\'')
-                csv2bin(strClear(argv[2]));
-            else
-                csv2bin(argv[2]);
+            csv2bin(argv[2]);
 			break;
 		case 2:
 			bin2out();
