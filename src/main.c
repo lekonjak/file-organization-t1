@@ -2,6 +2,7 @@
  *
  * Ricardo A Araujo - 9364890
  * Tiago Esperança Triques - 9037713
+ * Fábio Augusto Romanini Pinto - 9791312
  */
 
 #include "tad.h"
@@ -9,6 +10,10 @@
 int main(int argc, char *argv[]) {
     //STFU gcc
     (void) argc;
+    if (argc <= 1) {
+    	printf("usage: %s OPTION\n", argv[0]);
+    	exit(0);
+    }
 
 	int op = atoi(argv[1]);
 

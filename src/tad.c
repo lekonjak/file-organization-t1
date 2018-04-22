@@ -27,6 +27,15 @@ struct header {
     int stackTop; //🔝
 };
 
+enum {
+    PRESTADORA,
+    DATA_ATIV,
+    COD_INEP,
+    NOME_ESCOLA,
+    MUNICIPIO,
+    UF
+};
+
 /* A função lê uma linha de cada vez do arquivo csv, separa cada campo, e escreve os dados
  * em outro arquivo binário. Uma mensagem de erro é printada caso o arquivo de entrada e/ou saída
  * não consiga ser aberto.
@@ -73,7 +82,7 @@ void csv2bin(char *filename) {
             fields = split(linha);
 
             //Reg size
-            regSize = strlen(fields[0]) + strlen(fields[3]) + strlen(fields[4]);
+            regSize = strlen(fields[PRESTADORA]) + strlen(fields[NOME_ESCOLA]) + strlen(fields[MUNICIPIO]); // Campos de tamanho variável
             regSize += 10+2+4+4+4;
 
             //TODO Melhorar essa djabo
@@ -84,22 +93,22 @@ void csv2bin(char *filename) {
             //  - tamanho variável: size = 0
             //Another gambs
             r.prestadora = calloc(87, sizeof(char));
-            strncpy(r.prestadora, fields[0], strlen(fields[0]));
+            strncpy(r.prestadora, fields[PRESTADORA], strlen(fields[PRESTADORA]));
 
             //Fixo 10 bytes
-            strncpy(r.dataAtiv, fields[1], 10);
+            strncpy(r.dataAtiv, fields[DATA_ATIV], 10);
 
             //Fixo 4 bytes
-            r.codINEP = atoi(fields[2]);
+            r.codINEP = atoi(fields[COD_INEP]);
 
-            r.nomeEscola = calloc(strlen(fields[3])+1, sizeof(char));
-            strncpy(r.nomeEscola, fields[3], strlen(fields[3]));
+            r.nomeEscola = calloc(strlen(fields[NOME_ESCOLA])+1, sizeof(char));
+            strncpy(r.nomeEscola, fields[NOME_ESCOLA], strlen(fields[NOME_ESCOLA]));
 
-            r.municipio = calloc(strlen(fields[4])+1, sizeof(char));
-            strncpy(r.municipio, fields[4], strlen(fields[4]));
+            r.municipio = calloc(strlen(fields[MUNICIPIO])+1, sizeof(char));
+            strncpy(r.municipio, fields[MUNICIPIO], strlen(fields[MUNICIPIO]));
 
             //Fixo 2 bytes
-            strncpy(r.uf, fields[5], 2);
+            strncpy(r.uf, fields[UF], 2);
 
             int aux;
             //Write each entry
