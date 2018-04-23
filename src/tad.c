@@ -36,6 +36,11 @@ enum {
     UF
 };
 
+#define COD_INEP_SIZE 4
+#define UF_SIZE 2
+#define DATA_ATIV_SIZE 10
+#define REG_SIZE 87
+
 /* A função lê uma linha de cada vez do arquivo csv, separa cada campo, e escreve os dados
  * em outro arquivo binário. Uma mensagem de erro é printada caso o arquivo de entrada e/ou saída
  * não consiga ser aberto.
@@ -45,6 +50,16 @@ enum {
  * Ps: strsep é mais "robusta" que strtok pois suporta delimitadores consecutivos.
  * No arquivo de entrada, ";;" indica um campo "null". Usando strtok os campos 'null' seriam ignorados
  */
+
+char *format(char *target, char *source) {
+    int size = strlen(source);
+    for (int i = 0; i < size; ++i) {
+        target[i] = source[i];
+    }
+    target[size] = '\0';
+    return target;
+}
+
 void csv2bin(char *filename) {
     FILE *infile = NULL, *outfile = NULL;
     char *linha = NULL;
@@ -83,55 +98,40 @@ void csv2bin(char *filename) {
 
             //Reg size
             regSize = strlen(fields[PRESTADORA]) + strlen(fields[NOME_ESCOLA]) + strlen(fields[MUNICIPIO]); // Campos de tamanho variável
-            regSize += 10+2+4+4+4;
+            regSize += COD_INEP_SIZE + UF_SIZE + DATA_ATIV_SIZE + 3 * sizeof(int); // Campos de tamanho fixo + 3 indicadores de tamanho
 
-            //TODO Melhorar essa djabo
-            //TODO 2: Registro tem tamanho fixo, precisamos garantir que estamos
-            //escrevendo 87 bytes toda vez.
-            //TODO 3: Campos NULL:
-            //  - tamanho fixo: preencher tudo com 0
-            //  - tamanho variável: size = 0
-            //Another gambs
-            r.prestadora = calloc(87, sizeof(char));
-            strncpy(r.prestadora, fields[PRESTADORA], strlen(fields[PRESTADORA]));
-
-            //Fixo 10 bytes
-            strncpy(r.dataAtiv, fields[DATA_ATIV], 10);
-
-            //Fixo 4 bytes
             r.codINEP = atoi(fields[COD_INEP]);
+            r.nomeEscola = fields[NOME_ESCOLA];
+            r.municipio = fields[MUNICIPIO];
+            r.prestadora = fields[PRESTADORA];
 
-            r.nomeEscola = calloc(strlen(fields[NOME_ESCOLA])+1, sizeof(char));
-            strncpy(r.nomeEscola, fields[NOME_ESCOLA], strlen(fields[NOME_ESCOLA]));
-
-            r.municipio = calloc(strlen(fields[MUNICIPIO])+1, sizeof(char));
-            strncpy(r.municipio, fields[MUNICIPIO], strlen(fields[MUNICIPIO]));
-
-            //Fixo 2 bytes
-            strncpy(r.uf, fields[UF], 2);
-
-            int aux;
+            int size;
             //Write each entry
             fwrite(&r.codINEP, sizeof(int), 1, outfile);
-            fwrite(r.dataAtiv, 10*sizeof(char), 1, outfile);
-            fwrite(r.uf, 2*sizeof(char), 1, outfile);
+            fwrite(fields[DATA_ATIV], 10*sizeof(char), 1, outfile);
+            fwrite(fields[UF], 2*sizeof(char), 1, outfile);
 
             //Tamanho e nome da escola
-            aux = strlen(r.nomeEscola);
-            fwrite(&aux, sizeof(int), 1, outfile);
-            fwrite(r.nomeEscola, aux*sizeof(char), 1, outfile);
+            size = strlen(r.nomeEscola);
+            fwrite(&size, sizeof(int), 1, outfile);
+            fwrite(r.nomeEscola, size*sizeof(char), 1, outfile);
 
-            aux = strlen(r.municipio);
-            fwrite(&aux, sizeof(int), 1, outfile);
-            fwrite(r.municipio, aux*sizeof(char), 1, outfile);
+            size = strlen(r.municipio);
+            fwrite(&size, sizeof(int), 1, outfile);
+            fwrite(r.municipio, size*sizeof(char), 1, outfile);
 
-            aux = 87 - regSize;
-            fwrite(&aux, sizeof(int), 1, outfile);
-            fwrite(r.prestadora, aux*sizeof(char), 1, outfile);
+            size = REG_SIZE - regSize + strlen(r.prestadora);
+            fwrite(&size, sizeof(int), 1, outfile);
+            fwrite(r.prestadora, size*sizeof(char), 1, outfile);
 
-            free(r.prestadora);
-            free(r.nomeEscola);
-            free(r.municipio);
+
+            int pres_size=strlen(fields[PRESTADORA]);
+            int escola_size=strlen(fields[NOME_ESCOLA]);
+            int mun_size=strlen(fields[MUNICIPIO]);
+            printf("%d:%s\n", pres_size, fields[PRESTADORA]);
+            printf("%d:%s\n", escola_size, fields[NOME_ESCOLA]);
+            printf("%d:%s\n", mun_size, fields[MUNICIPIO]);
+            printf("REAL PRESTADORASIZE: %d\n\n", size);
 
             for(int i = 0; i < 6; i++)
                 free(fields[i]);
@@ -321,11 +321,11 @@ void bin2outRRN(int RRN) {
     FILE *fp;
     Registro r = {0};
     int sizeEscola, sizeMunicipio, sizePrestadora;
-	long offset = 5;
+	long offset = sizeof(int) + sizeof(char);
 
     fp = fopen("output.dat", "rb");
     int max = eof(fp);
-    fseek(fp, offset + (RRN*87), SEEK_SET);
+    fseek(fp, offset + (RRN * REG_SIZE), SEEK_SET);
     if(!workingfeof(fp, max)) {
         fread(&r.codINEP, sizeof(int), 1, fp);
         fread(r.dataAtiv, 10*sizeof(char), 1, fp);
