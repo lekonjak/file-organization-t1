@@ -51,15 +51,6 @@ enum {
  * No arquivo de entrada, ";;" indica um campo "null". Usando strtok os campos 'null' seriam ignorados
  */
 
-char *format(char *target, char *source) {
-    int size = strlen(source);
-    for (int i = 0; i < size; ++i) {
-        target[i] = source[i];
-    }
-    target[size] = '\0';
-    return target;
-}
-
 void csv2bin(char *filename) {
     FILE *infile = NULL, *outfile = NULL;
     char *linha = NULL;
@@ -123,15 +114,6 @@ void csv2bin(char *filename) {
             size = REG_SIZE - regSize + strlen(r.prestadora);
             fwrite(&size, sizeof(int), 1, outfile);
             fwrite(r.prestadora, size*sizeof(char), 1, outfile);
-
-
-            int pres_size=strlen(fields[PRESTADORA]);
-            int escola_size=strlen(fields[NOME_ESCOLA]);
-            int mun_size=strlen(fields[MUNICIPIO]);
-            printf("%d:%s\n", pres_size, fields[PRESTADORA]);
-            printf("%d:%s\n", escola_size, fields[NOME_ESCOLA]);
-            printf("%d:%s\n", mun_size, fields[MUNICIPIO]);
-            printf("REAL PRESTADORASIZE: %d\n\n", size);
 
             for(int i = 0; i < 6; i++)
                 free(fields[i]);
