@@ -112,6 +112,8 @@ void csv2bin(char *filename) {
         }
     }
 
+    fprintf(stdout, "Arquivo carregado.\n");
+
     //Fechar arquivos de entrada e saída
     fclose(infile);
     fclose(outfile);
@@ -186,6 +188,17 @@ void catReg(Registro *reg, int sizeEscola, int sizeMunicipio, int sizePrestadora
             sizePrestadora, reg->prestadora);
 }
 
+/* Imprime registro em stderr.
+ * Deve ser usado apenas para printar os registros dentro
+ * dos ifs de debug
+ */
+void stderrCatReg(Registro *reg, int sizeEscola, int sizeMunicipio, int sizePrestadora) {
+    fprintf(stderr, "%d %s %s %d %s %d %s %d %s\n", \
+            reg->codINEP, reg->dataAtiv, reg->uf, sizeEscola,\
+            reg->nomeEscola, sizeMunicipio, reg->municipio, \
+            sizePrestadora, reg->prestadora);
+}
+
 void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
     FILE *fp;
     Registro r = {0};
@@ -216,7 +229,7 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
 
 #ifdef DEBUG
         fprintf(stderr, "Category %c\n", category[0]);
-        catReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
+        stderrCatReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
 #endif
 
         //Retorna qual dos campos estamos querendo fazer a busca
@@ -367,6 +380,8 @@ void recBin(void) {
 
     if(top == -1) {
         fprintf(stdout, "Pilha vazia.\n");
+    } else {
+        fprintf(stderr, "Ainda não implementamos essa funcionalidade ¯\\_(ツ)_/¯\n");
     }
 
     fclose(fp);
