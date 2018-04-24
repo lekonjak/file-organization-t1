@@ -5,24 +5,24 @@
 #include <stdio.h>
 #include <string.h>
 
-// Não sei qualé o padrão que vocês costumam usar pra typedef de structs
 typedef struct registro Registro;
 
 typedef struct header Header;
 
-void csv2bin(char *filename);
+int fpeek(FILE *fp);
+int intCmp(void *a, void *b);
+int sstrCmp(void *a, void *b);
+
+void *maybeConvert(char *c, char d);
+void *selectCmp(char cat);
+
+void add2bin(char *argv[]);
 void bin2out(void);
-    void catReg(Registro *reg, int sizeEscola, int sizeMunicipio, int sizePrestadora);
-    int fpeek(FILE *fp);
-void bin2outGrep(char *category, void *element, int (*cmp)(void*, void*));
-    void *selectCmp(char cat);
-    int intCmp(void *a, void *b);
-    int sstrCmp(void *a, void *b);
-    char *strClear(char *s);
-    void *maybeConvert(char *c, char d);
+void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *));
 void bin2outRRN(int RRN);
 void bin2trashRRN(int RRN);
-void add2bin(char *argv[]);
-void updateBin(char *argv[]);
 void binDefrag(void);
+void catReg(Registro *reg, int sizeEscola, int sizeMunicipio, int sizePrestadora);
+void csv2bin(char *filename);
 void recBin(void);
+void updateBin(char *argv[]);

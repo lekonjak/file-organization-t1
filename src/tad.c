@@ -1,20 +1,11 @@
 #include "tad.h"
 #include "utils.h"
 
-/* PDF diz: 'registro de 87 bytes'
- * Precisamos "alinhar" com o tamanho de página de disco
- * (veja https://0x0.st/6C - slide 36)
- *
- * Uma página tem 2^12 = 4096 bytes, então precisamos deixar cada registro com
- * 2^7 = 128 bytes. Teremos 2^(12 - 7) = 2^5 = 32 registros por página de disco
- *
- * Ou não, se alguém souber me avisa
- */
 struct registro {
     // Campos de tamanho fixo
-    int codINEP;        //4 bytes
-    char dataAtiv[11];  //10 bytes
-    char uf[3];         //2 bytes
+    int codINEP;
+    char dataAtiv[11];
+    char uf[3];
 
     //Campos de tamanho variável
     char *nomeEscola;
@@ -50,7 +41,6 @@ enum {
  * Ps: strsep é mais "robusta" que strtok pois suporta delimitadores consecutivos.
  * No arquivo de entrada, ";;" indica um campo "null". Usando strtok os campos 'null' seriam ignorados
  */
-
 void csv2bin(char *filename) {
     FILE *infile = NULL, *outfile = NULL;
     char *linha = NULL;
@@ -127,6 +117,9 @@ void csv2bin(char *filename) {
     fclose(outfile);
 }
 
+/* Retorna o tamanho do arquivo fp
+ * Usado para checar se chegamos no fim do arquivo durante a leitura dos dados
+ */
 int eof(FILE *fp) {
     int cur = ftell(fp);
 
@@ -138,6 +131,9 @@ int eof(FILE *fp) {
     return max;
 }
 
+/* Checa se a posição atual no arquivo é menor que o tamanho, ou seja
+ * verifica se não é fim de arquivo.
+ */
 int workingfeof(FILE *fp, int size) {
     if(ftell(fp) < size)
         return 0;
@@ -181,6 +177,8 @@ void bin2out(void) {
     fclose(fp);
 }
 
+/* Função para printar os cados de um registro
+ */
 void catReg(Registro *reg, int sizeEscola, int sizeMunicipio, int sizePrestadora) {
     fprintf(stdout, "%d %s %s %d %s %d %s %d %s\n", \
             reg->codINEP, reg->dataAtiv, reg->uf, sizeEscola,\
@@ -215,10 +213,13 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
         fread(r.prestadora, sizeof(char)*sizePrestadora, 1, fp);
 
         sizePrestadora = strlen(r.prestadora);
+
 #ifdef DEBUG
-        printf("Category %c", category[0]);
+        fprintf(stderr, "Category %c\n", category[0]);
         catReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
 #endif
+
+        //Retorna qual dos campos estamos querendo fazer a busca
         this = category[0] == 'c' ? &r.codINEP :\
                 category[0] == 'd' ? r.dataAtiv :\
                  category[0] == 'u' ? r.uf :\
@@ -226,6 +227,7 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
                    category[0] == 'p' ? r.prestadora :\
                     category[0] == 'm' ? r.municipio: this; // precompilator gave me no choice, i had to cast do avoid warning
 
+        //Se não for nenhum dos campos existentes no registro
         if(this == NULL) {
             fclose(fp);
             free(r.nomeEscola);
@@ -234,10 +236,12 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
 
             category[0] == 'c' ? free(element) : "c:";
 
-            printf("Falha no processamento do arquivo.\n");
+            fprintf(stdout, "Falha no processamento do arquivo.\n");
             return;
         }
 
+        //Compara campo buscado com o do registro
+        //Se for igual, imprime tal registro
         if(!cmp(element, this)) {
             catReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
             flag++;
@@ -249,40 +253,50 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
     }
 
     if(!flag)
-        printf("Registro inexistente.\n");
+        fprintf(stdout, "Registro inexistente.\n");
 
     category[0] == 'c' ? free(element) : 0;
     fclose(fp);
 }
 
-void *maybeConvert(char *c, char d){
-    if(d == 'c'){
-        int *a = (int*) malloc (sizeof(int));
+void *maybeConvert(char *c, char d) {
+    if(d == 'c') {
+        int *a = (int *) malloc (sizeof(int));
         *a = atoi(c);
         return a;
     }
     return c;
 }
 
+/* Retorna uma função de comparação dependendo do tipo do campo buscado:
+ * Se for codINEP, a função deverá comparar 2 inteiros.
+ * Caso contrário, a função compara strings
+ */
 void *selectCmp(char cat) {
 #ifdef DEBUG
-    printf("cmp int? %s\n", cat == 'c'? "yes" : "no");
+    fprintf(stderr, "cmp int? %s\n", cat == 'c'? "yes" : "no");
 #endif
     return cat == 'c' ? &intCmp : &sstrCmp;
 }
 
+/* Função de comparação entre 2 inteiros
+ * Retorna 0 se forem iguais, 1 caso contrário
+ */
 int intCmp(void *a, void *b) {
 #ifdef DEBUG
-    printf("comparing %d %d.... equal? %s\n", *((int*)(a)), *((int*)(b)), *((int*)(a)) == *((int *)(b)) ? "yes" : "no");
+    fprintf(stderr, "comparing %d %d.... equal? %s\n", *((int *)(a)), *((int *)(b)), *((int *)(a)) == *((int *)(b)) ? "yes" : "no");
 #endif
-    return *((int*)(a)) == *((int *)(b)) ? 0 : 1;
+    return *((int *)(a)) == *((int *)(b)) ? 0 : 1;
 }
 
+/* Função de comparação entre 2 strings
+ * Retorna 0 se forem iguais, 1 caso contrário
+ */
 int sstrCmp(void *a, void *b) {
 #ifdef DEBUG
-    printf("comparing %s %s.... equal? %s\n", (char*)a, (char*)b,strcmp((char*)a, (char*)b) == 0 ? "yes" : "no");
+    fprintf(stderr, "comparing %s %s.... equal? %s\n", (char *)a, (char *)b,strcmp((char *)a, (char *)b) == 0 ? "yes" : "no");
 #endif
-    return strcmp((char*)a, (char*)b);
+    return strcmp((char *)a, (char *)b);
 }
 
 void bin2outRRN(int RRN) {
@@ -319,7 +333,7 @@ void bin2outRRN(int RRN) {
         free(r.municipio);
         free(r.prestadora);
     } else {
-        printf("Registro inexistente.\n");
+        fprintf(stdout, "Registro inexistente.\n");
     }
 
     fclose(fp);
@@ -342,5 +356,18 @@ void binDefrag(void) {
 }
 
 void recBin(void) {
+    FILE *fp = fopen("output.dat", "rb");
 
+    //Pular campo de status
+    fseek(fp, 1, SEEK_SET);
+
+    int top;
+    //Ler o topo da pilha
+    fread(&top, sizeof(int), 1, fp);
+
+    if(top == -1) {
+        fprintf(stdout, "Pilha vazia.\n");
+    }
+
+    fclose(fp);
 }

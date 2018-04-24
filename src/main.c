@@ -9,7 +9,7 @@
 
 int main(int argc, char *argv[]) {
     if (argc <= 1) {
-        printf("usage: %s OPTION\n", argv[0]);
+        fprintf(stdout, "usage: %s OPTION\n", argv[0]);
         exit(0);
     }
 

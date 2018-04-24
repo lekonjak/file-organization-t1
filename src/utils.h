@@ -18,4 +18,6 @@ char *readline(void);
  */
 char *freadline(FILE *fp);
 
+/* Split a string at ';' and returns the tokens
+ */
 char **split(char *string);
