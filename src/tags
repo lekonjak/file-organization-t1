@@ -4,22 +4,47 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
+COD_INEP	tad.c	/^    COD_INEP,$/;"	e	enum:__anon2	file:
+COD_INEP_SIZE	tad.c	39;"	d	file:
+DATA_ATIV	tad.c	/^    DATA_ATIV,$/;"	e	enum:__anon2	file:
+DATA_ATIV_SIZE	tad.c	41;"	d	file:
 Header	tad.h	/^typedef struct header Header;$/;"	t	typeref:struct:header
+MUNICIPIO	tad.c	/^    MUNICIPIO,$/;"	e	enum:__anon2	file:
+NOME_ESCOLA	tad.c	/^    NOME_ESCOLA,$/;"	e	enum:__anon2	file:
+PRESTADORA	tad.c	/^    PRESTADORA,$/;"	e	enum:__anon2	file:
+REG_SIZE	tad.c	42;"	d	file:
 Registro	tad.h	/^typedef struct registro Registro;$/;"	t	typeref:struct:registro
-codINEP	tad.c	/^	int codINEP;		\/\/4 bytes$/;"	m	struct:registro	file:
-dataAtiv	tad.c	/^	char dataAtiv[10];  \/\/10 bytes$/;"	m	struct:registro	file:
+UF	tad.c	/^    UF$/;"	e	enum:__anon2	file:
+UF_SIZE	tad.c	40;"	d	file:
+add2bin	tad.c	/^void add2bin(char *argv[]) {$/;"	f
+bin2out	tad.c	/^void bin2out(void) {$/;"	f
+bin2outGrep	tad.c	/^void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {$/;"	f
+bin2outRRN	tad.c	/^void bin2outRRN(int RRN) {$/;"	f
+bin2trashRRN	tad.c	/^void bin2trashRRN(int RRN) {$/;"	f
+binDefrag	tad.c	/^void binDefrag(void) {$/;"	f
+catReg	tad.c	/^void catReg(Registro *reg, int sizeEscola, int sizeMunicipio, int sizePrestadora) {$/;"	f
+codINEP	tad.c	/^    int codINEP;        \/\/4 bytes$/;"	m	struct:registro	file:
+csv2bin	tad.c	/^void csv2bin(char *filename) {$/;"	f
+dataAtiv	tad.c	/^    char dataAtiv[11];  \/\/10 bytes$/;"	m	struct:registro	file:
+eof	tad.c	/^int eof(FILE *fp) {$/;"	f
 false	utils.h	/^	false, true,$/;"	e	enum:__anon1
 freadline	utils.c	/^char *freadline(FILE *fp) {$/;"	f
 header	tad.c	/^struct header {$/;"	s	file:
+intCmp	tad.c	/^int intCmp(void *a, void *b) {$/;"	f
 main	main.c	/^int main(int argc, char *argv[]) {$/;"	f
-municipio	tad.c	/^	char *municipio;	\/\/8 bytes$/;"	m	struct:registro	file:
-nomeEscola	tad.c	/^	char *nomeEscola;   \/\/8 bytes$/;"	m	struct:registro	file:
-prestadora	tad.c	/^	char *prestadora;	\/\/8 bytes$/;"	m	struct:registro	file:
-readFromFileWriteToFile	tad.c	/^void readFromFileWriteToFile(char *filename) {$/;"	f
+maybeConvert	tad.c	/^void *maybeConvert(char *c, char d){$/;"	f
+municipio	tad.c	/^    char *municipio;$/;"	m	struct:registro	file:
+nomeEscola	tad.c	/^    char *nomeEscola;$/;"	m	struct:registro	file:
+prestadora	tad.c	/^    char *prestadora;$/;"	m	struct:registro	file:
 readline	utils.c	/^char *readline(void) {$/;"	f
+recBin	tad.c	/^void recBin(void) {$/;"	f
 registro	tad.c	/^struct registro {$/;"	s	file:
+selectCmp	tad.c	/^void *selectCmp(char cat) {$/;"	f
 split	utils.c	/^char **split(char *string) {$/;"	f
-stackTop	tad.c	/^	int stackTop; \/\/🔝$/;"	m	struct:header	file:
-status	tad.c	/^	char status;$/;"	m	struct:header	file:
+sstrCmp	tad.c	/^int sstrCmp(void *a, void *b) {$/;"	f
+stackTop	tad.c	/^    int stackTop; \/\/🔝$/;"	m	struct:header	file:
+status	tad.c	/^    char status;$/;"	m	struct:header	file:
 true	utils.h	/^	false, true,$/;"	e	enum:__anon1
-uf	tad.c	/^	char uf[2]; 		\/\/2 bytes$/;"	m	struct:registro	file:
+uf	tad.c	/^    char uf[3];         \/\/2 bytes$/;"	m	struct:registro	file:
+updateBin	tad.c	/^void updateBin(char *argv[]) {$/;"	f
+workingfeof	tad.c	/^int workingfeof(FILE *fp, int size) {$/;"	f

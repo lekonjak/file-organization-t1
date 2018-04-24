@@ -12,9 +12,9 @@
  */
 struct registro {
     // Campos de tamanho fixo
-    int codINEP;		//4 bytes
+    int codINEP;        //4 bytes
     char dataAtiv[11];  //10 bytes
-    char uf[3]; 		//2 bytes
+    char uf[3];         //2 bytes
 
     //Campos de tamanho variável
     char *nomeEscola;
@@ -193,7 +193,7 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
     Registro r = {0};
 
     int sizeEscola, sizeMunicipio, sizePrestadora, flag = 0;
-	long offset = 5;
+    long offset = 5;
     void *this = NULL;
     fp = fopen("output.dat", "rb");
     fseek(fp, offset, SEEK_SET);
@@ -292,7 +292,7 @@ void bin2outRRN(int RRN) {
     FILE *fp;
     Registro r = {0};
     int sizeEscola, sizeMunicipio, sizePrestadora;
-	long offset = sizeof(int) + sizeof(char);
+    long offset = sizeof(int) + sizeof(char);
 
     fp = fopen("output.dat", "rb");
     int max = eof(fp);
