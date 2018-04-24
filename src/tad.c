@@ -205,13 +205,13 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
         fread(r.dataAtiv, 10*sizeof(char), 1, fp);
         fread(r.uf, 2*sizeof(char), 1, fp);
         fread(&sizeEscola, sizeof(int), 1, fp);
-        r.nomeEscola = (char*) malloc (sizeof(char)*sizeEscola+1);
+        r.nomeEscola = calloc (sizeEscola+1, sizeof(char));
         fread(r.nomeEscola, sizeof(char)*sizeEscola, 1, fp);
         fread(&sizeMunicipio, sizeof(int), 1, fp);
-        r.municipio = (char*) malloc (sizeof(char)*sizeMunicipio+1);
+        r.municipio = calloc (sizeMunicipio+1, sizeof(char));
         fread(r.municipio, sizeof(char)*sizeMunicipio, 1, fp);
         fread(&sizePrestadora, sizeof(int), 1, fp);
-        r.prestadora = (char*) malloc (sizeof(char)*sizePrestadora+1);
+        r.prestadora = calloc (sizePrestadora+1, sizeof(char));
         fread(r.prestadora, sizeof(char)*sizePrestadora, 1, fp);
 
         sizePrestadora = strlen(r.prestadora);
@@ -220,11 +220,11 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
         catReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
 #endif
         this = category[0] == 'c' ? &r.codINEP :\
-                category[0] == 'd' ? &r.dataAtiv:\
-                 category[0] == 'u' ? &r.uf:\
-                  category[0] == 'n' ? &r.nomeEscola:\
-                   category[0] == 'p' ? &r.prestadora:\
-                    category[0] == 'm' ? &r.municipio: this; // precompilator gave me no choice, i had to cast do avoid warning
+                category[0] == 'd' ? r.dataAtiv :\
+                 category[0] == 'u' ? r.uf :\
+                  category[0] == 'n' ? r.nomeEscola :\
+                   category[0] == 'p' ? r.prestadora :\
+                    category[0] == 'm' ? r.municipio: this; // precompilator gave me no choice, i had to cast do avoid warning
 
         if(this == NULL) {
             fclose(fp);
@@ -263,6 +263,7 @@ void *maybeConvert(char *c, char d){
     }
     return c;
 }
+
 void *selectCmp(char cat) {
 #ifdef DEBUG
     printf("cmp int? %s\n", cat == 'c'? "yes" : "no");
@@ -282,18 +283,6 @@ int sstrCmp(void *a, void *b) {
     printf("comparing %s %s.... equal? %s\n", (char*)a, (char*)b,strcmp((char*)a, (char*)b) == 0 ? "yes" : "no");
 #endif
     return strcmp((char*)a, (char*)b);
-}
-
-char *strClear(char *s) {
-    char *out = malloc ((strlen(s)-2)*sizeof(char));
-    int i;
-
-    for(i = 1; s[i] != '\''; i++) {
-        out[i-1] = s[i];
-    }
-    out[i] = '\0';
-
-    return out;
 }
 
 void bin2outRRN(int RRN) {
