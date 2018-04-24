@@ -8,8 +8,6 @@
 #include "tad.h"
 
 int main(int argc, char *argv[]) {
-    //STFU gcc
-    (void) argc;
     if (argc <= 1) {
     	printf("usage: %s OPTION\n", argv[0]);
     	exit(0);
@@ -17,9 +15,6 @@ int main(int argc, char *argv[]) {
 
 	int op = atoi(argv[1]);
 
-/*
- *  if necessary char *strClear(char *s);
- * */
 	switch(op) {
 		case 1:
             csv2bin(argv[2]);
@@ -28,7 +23,7 @@ int main(int argc, char *argv[]) {
 			bin2out();
             break;
 		case 3:
-            bin2outGrep(argv[2], maybeConvert(argv[3], argv[2][0]), argv[2][0] == '\'' ?  selectCmp(argv[2][1]) : selectCmp(argv[2][0]) );
+            bin2outGrep(argv[2], maybeConvert(argv[3], argv[2][0]), selectCmp(argv[2][0]));
 			break;
 		case 4:
             bin2outRRN(atoi(argv[2]));
