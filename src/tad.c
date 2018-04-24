@@ -97,10 +97,12 @@ void csv2bin(char *filename) {
             fwrite(&size, sizeof(int), 1, outfile);
             fwrite(r.nomeEscola, size*sizeof(char), 1, outfile);
 
+            //Tamanho e nome do município
             size = strlen(r.municipio);
             fwrite(&size, sizeof(int), 1, outfile);
             fwrite(r.municipio, size*sizeof(char), 1, outfile);
 
+            //O ultimo campo ocupará todo o restante do registro
             size = REG_SIZE - regSize + strlen(r.prestadora);
             fwrite(&size, sizeof(int), 1, outfile);
             fwrite(r.prestadora, size*sizeof(char), 1, outfile);
@@ -149,12 +151,27 @@ void bin2out(void) {
     long offset = 5;
 
     fp = fopen("output.dat", "rb");
+
+    if(fp == NULL) {
+        fprintf(stdout, "Falha no processamento do arquivo\n");
+    }
+
     fseek(fp, offset, SEEK_SET);
 
     int max = eof(fp);
 
+    //TODO checar se o campo não foi removido
+    //Remoção é apenas lógica: se os 4 primeiros bytes, aka codINEP forem -1
+    //o registro foi removido, apenas skipar
     while(!workingfeof(fp, max)) {
         fread(&r.codINEP, sizeof(int), 1, fp);
+
+        if(r.codINEP == -1) {
+            fprintf(stderr, "Registro removido\n");
+            fseek(fp, -4, SEEK_CUR); //Não sei fazer contas
+            fseek(fp, 87, SEEK_CUR); //Então vai assim mesmo
+        }
+
         fread(r.dataAtiv, 10*sizeof(char), 1, fp);
         fread(r.uf, 2*sizeof(char), 1, fp);
         fread(&sizeEscola, sizeof(int), 1, fp);
@@ -189,8 +206,8 @@ void catReg(Registro *reg, int sizeEscola, int sizeMunicipio, int sizePrestadora
 }
 
 /* Imprime registro em stderr.
- * Deve ser usado apenas para printar os registros dentro
- * dos ifs de debug
+ * Deve ser usado apenas para printar os registros
+ * dentro dos ifs de debug
  */
 void stderrCatReg(Registro *reg, int sizeEscola, int sizeMunicipio, int sizePrestadora) {
     fprintf(stderr, "%d %s %s %d %s %d %s %d %s\n", \
@@ -207,6 +224,12 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
     long offset = 5;
     void *this = NULL;
     fp = fopen("output.dat", "rb");
+
+    if(fp == NULL) {
+        fprintf(stdout, "Falha no processamento do arquivo\n");
+        return;
+    }
+
     fseek(fp, offset, SEEK_SET);
 
     int max = eof(fp);
@@ -322,6 +345,12 @@ void bin2outRRN(int RRN) {
     long offset = sizeof(int) + sizeof(char);
 
     fp = fopen("output.dat", "rb");
+
+    if(fp == NULL) {
+        fprintf(stdout, "Falha no processamento do arquivo.\n");
+        return;
+    }
+
     int max = eof(fp);
     fseek(fp, offset + (RRN * REG_SIZE), SEEK_SET);
     if(!workingfeof(fp, max)) {
@@ -370,6 +399,11 @@ void binDefrag(void) {
 
 void recBin(void) {
     FILE *fp = fopen("output.dat", "rb");
+
+    if(fp == NULL) {
+        fprintf(stdout, "Falha no processamento do arquivo.\n");
+        return;
+    }
 
     //Pular campo de status
     fseek(fp, 1, SEEK_SET);

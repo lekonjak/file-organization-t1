@@ -1,7 +1,7 @@
 all: compile
-	
+
 compile:
-	gcc -o programaTrab1 src/*.c 
+	gcc -o programaTrab1 src/*.c
 run:
 	./programaTrab1
 dcompile:
