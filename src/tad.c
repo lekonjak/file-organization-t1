@@ -170,6 +170,8 @@ void bin2out(void) {
             fprintf(stderr, "Registro removido\n");
             fseek(fp, -4, SEEK_CUR); //Não sei fazer contas
             fseek(fp, 87, SEEK_CUR); //Então vai assim mesmo
+
+            goto end;
         }
 
         fread(r.dataAtiv, 10*sizeof(char), 1, fp);
@@ -191,6 +193,8 @@ void bin2out(void) {
         free(r.nomeEscola);
         free(r.municipio);
         free(r.prestadora);
+end:
+        continue;
     }
 
     fclose(fp);
@@ -382,7 +386,77 @@ void bin2outRRN(int RRN) {
 }
 
 void bin2trashRRN(int RRN) {
-    (void) RRN;
+    FILE *fp = fopen("output.dat", "r+b");
+
+    if(fp == NULL) {
+        fprintf(stdout, "Falha no processamento do arquivo.\n");
+        return;
+    }
+
+    int max = eof(fp);
+
+#ifdef DEBUG
+    fprintf(stderr, "File size is %d\n", max);
+#endif
+
+    int stackTop;
+    int removed = -1;
+    int check;
+
+    //Skipar char de status
+    fseek(fp, 1, SEEK_SET);
+    //Ler topo da pilha
+    fread(&stackTop, sizeof(int), 1, fp);
+
+    //Caso não exista o registro
+    if((RRN * REG_SIZE) > max) {
+        fprintf(stderr, "Max is %d RRN * regSize is %d\n", max, (RRN * REG_SIZE));
+        fprintf(stdout, "Registro inexistente.\n");
+        fclose(fp);
+        return;
+    }
+
+    fseek(fp, (RRN * REG_SIZE), SEEK_CUR);
+
+    fread(&check, sizeof(int), 1, fp);
+
+#ifdef DEBUG
+    fprintf(stdout, "check is %d\n", check);
+#endif
+
+    if(check == -1) {
+        fprintf(stdout, "Registro inexistente.\n");
+        fclose(fp);
+        return;
+    }
+
+#ifdef DEBUG
+    fprintf(stderr, "ftell is %ld\n", ftell(fp));
+#endif
+
+    //Go back 4 bytes
+    fseek(fp, -4, SEEK_CUR);
+
+#ifdef DEBUG
+    fprintf(stderr, "ftell after fseek is %ld\n", ftell(fp));
+#endif
+
+    //TODO descobrir porque o fwrite não funciona
+    //Modo incorreto na abertuda do arquivo?
+
+    //Escrever -1 para sinalizar registro como "apagado"
+    fwrite(&removed, sizeof(int), 1, fp);
+
+    //Escrever topo antigo da pilha
+    fwrite(&stackTop, sizeof(int), 1, fp);
+
+    //Voltar no arquivo e escrever o novo topo da pilha de remoções
+    fseek(fp, 1, SEEK_SET);
+    fwrite(&RRN, sizeof(int), 1, fp);
+
+    fprintf(stdout, "Registro removido com sucesso.\n");
+
+    fclose(fp);
 }
 
 void add2bin(char *argv[]) {
