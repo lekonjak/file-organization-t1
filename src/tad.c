@@ -30,6 +30,7 @@ enum {
 #define COD_INEP_SIZE 4
 #define UF_SIZE 2
 #define DATA_ATIV_SIZE 10
+#define FIX_FIELDS_SIZE UF_SIZE + DATA_ATIV_SIZE + COD_INEP_SIZE
 #define REG_SIZE 87
 
 /* A função lê uma linha de cada vez do arquivo csv, separa cada campo, e escreve os dados
@@ -455,7 +456,67 @@ void bin2trashRRN(int RRN) {
 }
 
 void add2bin(char *argv[]) {
-    (void) argv;
+    Registro r = {0};
+    r.codINEP = atoi(argv[2]);
+    strcpy(r.dataAtiv, argv[3]);
+    strcpy(r.uf, argv[4]);
+    r.nomeEscola = argv[5];
+    r.municipio = argv[6];
+    r.prestadora = argv[7];
+
+    FILE *fp = fopen("output.dat", "r+b");
+
+    if(fp == NULL) {
+        fprintf(stdout, "Falha no processamento do arquivo.\n");
+        return;
+    }
+
+    // começamos a trabalhar no arquivo, então ele está indisponĩvel
+    char status = 1;
+    fwrite(&status, sizeof(char), 1, fp);
+
+    int stackTop;
+    fread(&stackTop, sizeof(int), 1, fp);
+
+    int newTop = stackTop;
+    // se pilha está vazia, o arquivo não possui espaços para serem reutilizados
+    if(stackTop == -1) {
+        fseek(fp, 0, SEEK_END);
+    } else {
+        int offset = stackTop * REG_SIZE + sizeof(int); // vamos ao rrn do último removido e pulamos o codINEP
+        fseek(fp, offset, SEEK_CUR);                    // para ler diretamente o pŕoximo topo
+        fread(&newTop, sizeof(int), 1, fp);
+        fseek(fp, -2 * sizeof(int), SEEK_CUR); // retrocedemos ao começo do registro
+        printf("%ld\n", ftell(fp));
+    }
+
+    int regSize = FIX_FIELDS_SIZE + 3 * sizeof(int);
+    fwrite(&r.codINEP, sizeof(int), 1, fp);
+    fwrite(r.dataAtiv, sizeof(char), 10, fp);
+    fwrite(r.uf, sizeof(char), 2, fp);
+
+    int size = strlen(r.nomeEscola);
+    regSize += size;
+    fwrite(&size, sizeof(int), 1, fp);
+    fwrite(r.nomeEscola, sizeof(char), size, fp);
+
+    size = strlen(r.municipio);
+    regSize += size;
+    fwrite(&size, sizeof(int), 1, fp);
+    fwrite(r.municipio, sizeof(char), size, fp);
+
+    size = REG_SIZE - regSize;
+    char *formatted_prestadora = (char *) calloc(size, sizeof(char));
+    formatted_prestadora = strcpy(formatted_prestadora, r.prestadora);
+    fwrite(&size, sizeof(int), 1, fp);
+    fwrite(formatted_prestadora, sizeof(char), size, fp);
+    free(formatted_prestadora);
+
+    status = 0;
+    fseek(fp, 0, SEEK_SET);
+    fwrite(&status, sizeof(char), 1, fp);
+    fwrite(&newTop, sizeof(int), 1, fp);
+    fclose(fp);
 }
 
 void updateBin(char *argv[]) {

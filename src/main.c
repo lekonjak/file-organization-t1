@@ -32,6 +32,11 @@ int main(int argc, char *argv[]) {
             bin2trashRRN(atoi(argv[2]));
             break;
         case 6:
+            // documentação interna!
+            if (argc < 7) {
+                printf("usage: %s 6 codINEP dataAtiv UF nomeEscola municipio prestadora\n", argv[0]);
+                break;
+            }
             add2bin(argv);
             break;
         case 7:
