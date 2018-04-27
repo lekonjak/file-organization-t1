@@ -527,6 +527,19 @@ void binDefrag(void) {
 
 }
 
+void printPilha(FILE *fp, int top, int offset) {
+    printf("%d", top);
+    fseek(fp, top * REG_SIZE + offset + sizeof(int), SEEK_SET);
+    fread(&top, sizeof(int), 1, fp);
+
+    if (top == -1) {
+        printf("\n");
+    } else {
+        printf(" ");
+        printPilha(fp, top, offset);
+    }
+}
+
 void recBin(void) {
     FILE *fp = fopen("output.dat", "rb");
 
@@ -535,18 +548,21 @@ void recBin(void) {
         return;
     }
 
-    //Pular campo de status
-    fseek(fp, 1, SEEK_SET);
-
+    char status = 1;
+    fwrite(&status, sizeof(char), 1, fp);
+    fseek(fp, 1, SEEK_CUR);
+    
     int top;
-    //Ler o topo da pilha
     fread(&top, sizeof(int), 1, fp);
 
     if(top == -1) {
         fprintf(stdout, "Pilha vazia.\n");
     } else {
-        fprintf(stderr, "Ainda não implementamos essa funcionalidade ¯\\_(ツ)_/¯\n");
+        printPilha(fp, top, sizeof(int) + sizeof(char));
     }
 
+    status = 0;
+    fseek(fp, 0, SEEK_SET);
+    fwrite(&status, sizeof(char), 1, fp);
     fclose(fp);
 }
