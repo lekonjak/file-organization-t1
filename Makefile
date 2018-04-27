@@ -18,7 +18,7 @@ test:
 	@echo "\nStarting tests..."
 	./$(EXECUTABLE) 1 ./src/input.csv
 	./$(EXECUTABLE) 2 >> test_log/full.output
-	@echo "Executing $(REGCOUNT) executions..."
+	@echo "Executing $(REGCOUNT) gets..."
 	@$(foreach var,$(REGSEQ), ./$(EXECUTABLE) 4 $(var) >> test_log/single.output;)
 # Agora dá um diff nos dois arquivos gerados
 
