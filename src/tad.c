@@ -160,40 +160,31 @@ void bin2out(void) {
 
     int max = eof(fp);
 
-    //TODO checar se o campo não foi removido
-    //Remoção é apenas lógica: se os 4 primeiros bytes, aka codINEP forem -1
-    //o registro foi removido, apenas skipar
     while(!workingfeof(fp, max)) {
         fread(&r.codINEP, sizeof(int), 1, fp);
-
         if(r.codINEP == -1) {
             fprintf(stderr, "Registro removido\n");
-            fseek(fp, -4, SEEK_CUR); //Não sei fazer contas
-            fseek(fp, 87, SEEK_CUR); //Então vai assim mesmo
+            fseek(fp, REG_SIZE - COD_INEP_SIZE, SEEK_CUR);
+        } else {
+            fread(r.dataAtiv, 10*sizeof(char), 1, fp);
+            fread(r.uf, 2*sizeof(char), 1, fp);
+            fread(&sizeEscola, sizeof(int), 1, fp);
+            r.nomeEscola = calloc (sizeEscola+1, sizeof(char));
+            fread(r.nomeEscola, sizeEscola*sizeof(char), 1, fp);
+            fread(&sizeMunicipio, sizeof(int), 1, fp);
+            r.municipio = calloc (sizeMunicipio+1, sizeof(char));
+            fread(r.municipio, sizeMunicipio*sizeof(char), 1, fp);
+            fread(&sizePrestadora, sizeof(int), 1, fp);
+            r.prestadora = calloc (sizePrestadora+1, sizeof(char));
+            fread(r.prestadora, sizePrestadora*sizeof(char), 1, fp);
 
-            goto end;
+            sizePrestadora = strlen(r.prestadora);
+            catReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
+
+            free(r.nomeEscola);
+            free(r.municipio);
+            free(r.prestadora);
         }
-
-        fread(r.dataAtiv, 10*sizeof(char), 1, fp);
-        fread(r.uf, 2*sizeof(char), 1, fp);
-        fread(&sizeEscola, sizeof(int), 1, fp);
-        r.nomeEscola = calloc (sizeEscola+1, sizeof(char));
-        fread(r.nomeEscola, sizeEscola*sizeof(char), 1, fp);
-        fread(&sizeMunicipio, sizeof(int), 1, fp);
-        r.municipio = calloc (sizeMunicipio+1, sizeof(char));
-        fread(r.municipio, sizeMunicipio*sizeof(char), 1, fp);
-        fread(&sizePrestadora, sizeof(int), 1, fp);
-        r.prestadora = calloc (sizePrestadora+1, sizeof(char));
-        fread(r.prestadora, sizePrestadora*sizeof(char), 1, fp);
-
-        sizePrestadora = strlen(r.prestadora);
-
-        catReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
-
-        free(r.nomeEscola);
-        free(r.municipio);
-        free(r.prestadora);
-end:
         continue;
     }
 
