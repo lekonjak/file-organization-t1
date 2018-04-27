@@ -1,10 +1,30 @@
-all: compile
+EXECUTABLE = programaTrab1
+
+REGCOUNT = `cat ./src/input.csv | wc -l`
+REGLAST = $$(( $(REGCOUNT) - 1 ))
+REGSEQ = $(shell seq 0 ${REGLAST})
+
 
 compile:
-	gcc -o programaTrab1 src/*.c
+	gcc -o $(EXECUTABLE) src/*.c
 run:
-	./programaTrab1
+	./$(EXECUTABLE)
 dcompile:
-	gcc -o programaTrab1 src/*.c -D DEBUG -g -Wall -Wextra
+	gcc -o $(EXECUTABLE) src/*.c -D DEBUG -g -Wall -Wextra
 drun:
-	valgrind ./programaTrab1
+	valgrind ./$(EXECUTABLE)
+test:
+	$(MAKE) test_setup
+	@echo "\nStarting tests..."
+	./$(EXECUTABLE) 1 ./src/input.csv
+	./$(EXECUTABLE) 2 >> test_log/full.output
+	@echo "Executing $(REGCOUNT) executions..."
+	@$(foreach var,$(REGSEQ), ./$(EXECUTABLE) 4 $(var) >> test_log/single.output;)
+# Agora dá um diff nos dois arquivos gerados
+
+test_setup:
+ifeq (,$(wildcard test_log))
+	mkdir test_log
+else
+	rm -rf test_log/* 
+endif
