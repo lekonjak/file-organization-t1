@@ -359,25 +359,29 @@ void bin2outRRN(int RRN) {
     fseek(fp, offset + (RRN * REG_SIZE), SEEK_SET);
     if(!workingfeof(fp, max)) {
         fread(&r.codINEP, sizeof(int), 1, fp);
-        fread(r.dataAtiv, 10*sizeof(char), 1, fp);
-        fread(r.uf, 2*sizeof(char), 1, fp);
-        fread(&sizeEscola, sizeof(int), 1, fp);
-        r.nomeEscola = calloc(sizeEscola+1, sizeof(char));
-        fread(r.nomeEscola, sizeEscola*sizeof(char), 1, fp);
-        fread(&sizeMunicipio, sizeof(int), 1, fp);
-        r.municipio = calloc(sizeMunicipio+1, sizeof(char));
-        fread(r.municipio, sizeMunicipio*sizeof(char), 1, fp);
-        fread(&sizePrestadora, sizeof(int), 1, fp);
-        r.prestadora = calloc(sizePrestadora+1, sizeof(char));
-        fread(r.prestadora, sizePrestadora*sizeof(char), 1, fp);
+        if(r.codINEP != -1) {
+            fread(r.dataAtiv, 10*sizeof(char), 1, fp);
+            fread(r.uf, 2*sizeof(char), 1, fp);
+            fread(&sizeEscola, sizeof(int), 1, fp);
+            r.nomeEscola = calloc(sizeEscola+1, sizeof(char));
+            fread(r.nomeEscola, sizeEscola*sizeof(char), 1, fp);
+            fread(&sizeMunicipio, sizeof(int), 1, fp);
+            r.municipio = calloc(sizeMunicipio+1, sizeof(char));
+            fread(r.municipio, sizeMunicipio*sizeof(char), 1, fp);
+            fread(&sizePrestadora, sizeof(int), 1, fp);
+            r.prestadora = calloc(sizePrestadora+1, sizeof(char));
+            fread(r.prestadora, sizePrestadora*sizeof(char), 1, fp);
 
-        sizePrestadora = strlen(r.prestadora);
+            sizePrestadora = strlen(r.prestadora);
 
-        catReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
+            catReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
 
-        free(r.nomeEscola);
-        free(r.municipio);
-        free(r.prestadora);
+            free(r.nomeEscola);
+            free(r.municipio);
+            free(r.prestadora);
+        } else {
+            printf("Registro inexistente.\n");
+        }
     } else {
         fprintf(stdout, "Registro inexistente.\n");
     }
