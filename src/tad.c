@@ -27,7 +27,7 @@ enum {
     UF
 };
 
-#define COD_INEP_SIZE 4
+#define COD_INEP_SIZE sizeof(int)
 #define UF_SIZE 2
 #define DATA_ATIV_SIZE 10
 #define FIX_FIELDS_SIZE UF_SIZE + DATA_ATIV_SIZE + COD_INEP_SIZE
@@ -523,23 +523,106 @@ void updateBin(char *argv[]) {
     (void) argv;
 }
 
+/* Função para desfragmentar arquivo de dados
+ *
+ * Lê um arquivo de dados, que supostamente terão arquivos removidos,
+ * recuperando os registros e armazenando-os novamente - aqueles que não foram removidos -
+ * em outro arquivo de dados
+ */
 void binDefrag(void) {
+    //Renomear o arquivo de dados "antigo"
+    //Para que o atualizado sempre esteja com o mesmo nome
+    if(rename("output.dat", "output.dat.old") != 0) {
+        fprintf(stdout, "output.dat does not exist\n");
+        return;
+    }
 
+    //Abrir os 2 arquivos
+    FILE *fp_old = fopen("output.dat.old","r+b");
+    FILE *fp_new = fopen("output.dat", "w+b");
+
+    int status = 1;
+    int stackTop = -1;
+    fwrite(&status, sizof(char), 1, fp_new);
+    fwrite(&stackTop, sizeof(int), 1 fp_new);
+
+    Registro r = {0};
+    int max = eof(fp_old);
+    int regSize, sizeEscola, sizeMunicipio, sizePrestadora;
+
+    fseek(fp_old, sizeof(char) + sizeof(int), SEEK_SET);
+
+    while(!workingfeof(fp_old, max)) {
+        fread(&r.codINEP, COD_INEP_SIZE, 1, fp_old);
+
+        //Ler todos os campos do registro
+        //Se não foi removido, ler o restante dos campos
+        //e escrever no novo arquivo de dados
+        if(r.codINEP != -1) {
+            fread(r.dataAtiv, 10*sizeof(char), 1, fp);
+            fread(r.uf, 2*sizeof(char), 1, fp);
+            fread(&sizeEscola, sizeof(int), 1, fp);
+            r.nomeEscola = calloc (sizeEscola+1, sizeof(char));
+            fread(r.nomeEscola, sizeEscola*sizeof(char), 1, fp);
+            fread(&sizeMunicipio, sizeof(int), 1, fp);
+            r.municipio = calloc (sizeMunicipio+1, sizeof(char));
+            fread(r.municipio, sizeMunicipio*sizeof(char), 1, fp);
+            fread(&sizePrestadora, sizeof(int), 1, fp);
+            r.prestadora = calloc (sizePrestadora+1, sizeof(char));
+            fread(r.prestadora, sizePrestadora*sizeof(char), 1, fp);
+
+            //Reescrever no novo arquivo
+            //TODO arrumar sizePrestadora
+            fwrite(&r.codINEP, sizeof(int), 1, fp_new);
+            fwrite(r.dataAtiv, 10*sizeof(char), 1, fp_new);
+            fwrite(r.uf, 2*sizeof(char), 1, fp_new);
+            fwrite(&sizeEscola, sizeof(int), 1, fp_new);
+            fwrite(r.nomeEscola, sizeEscola*sizeof(char), 1, fp_new);
+            fwrite(&sizeMunicipio, sizeof(int), 1, fp_new);
+            fwrite(r.municipio, sizeMunicipio*sizeof(char), 1, fp_new);
+            fwrite(&sizePrestadora, sizeof(int), 1, fp_new);
+            fwrite(r.prestadora, sizePrestadora*sizeof(char), 1, fp_new);
+
+            free(r.nomeEscola);
+            free(r.municipio);
+            free(r.prestadora);
+        } else {
+            //Removed, skip this one
+            fseek(fp, REG_SIZE - COD_INEP_SIZE, SEEK_CUR);
+        }
+    }
+
+    //Quando finalizar, escrever 0 no status
+    status = 0;
+    fseek(fp, 0, SEEK_SET);
+    fwrite(&status, sizeof(char), 1, fp);
+
+    fclose(fp_old);
+    fclose(fp_new);
+
+    //Deletar arquivo de dados antigo
+    remove("output.dat.old");
 }
 
+/* Função que imprime a pilha de registros removidos
+ */
 void printPilha(FILE *fp, int top, int offset) {
     printf("%d", top);
     fseek(fp, top * REG_SIZE + offset + sizeof(int), SEEK_SET);
     fread(&top, sizeof(int), 1, fp);
 
+    //Se o topo for -1, acabou a pilha
     if (top == -1) {
         printf("\n");
     } else {
+        //Caso contrário, chama recursivamente para o próximo elemento da pilha
         printf(" ");
         printPilha(fp, top, offset);
     }
 }
 
+/* rec2bin recupera e imprime na tela a pilha de RRNs removidos do arquivo de dados
+ */
 void recBin(void) {
     FILE *fp = fopen("output.dat", "rb");
 
@@ -551,8 +634,9 @@ void recBin(void) {
     char status = 1;
     fwrite(&status, sizeof(char), 1, fp);
     fseek(fp, 1, SEEK_CUR);
-    
-    int top;
+
+    //Lê o topo da pilha
+    int top; //🔝
     fread(&top, sizeof(int), 1, fp);
 
     if(top == -1) {
