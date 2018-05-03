@@ -1,5 +1,6 @@
 #include "tad.h"
 #include "utils.h"
+#include <math.h>
 
 struct registro {
     // Campos de tamanho fixo
@@ -15,7 +16,7 @@ struct registro {
 
 struct header {
     char status;
-    int stackTop; //🔝
+    int stackTop; //
 };
 
 enum {
@@ -144,6 +145,7 @@ int workingfeof(FILE *fp, int size) {
         return 0;
     return 1;
 }
+
 
 void bin2out(void) {
     FILE *fp;
@@ -519,12 +521,128 @@ void add2bin(char *argv[]) {
     fclose(fp);
 }
 
+/*Funcao de update, recebe o argumento do console,
+ *busca o registro por RNN e o troca seus campos pelos
+ *campos do argumento 
+ */
 void updateBin(char *argv[]) {
-    (void) argv;
+
+	//Converte o rnn
+	int ordem;
+	int rnn;
+	for (int i = 3; argv[i] != '\0'; ++i)
+		ordem++;
+	for (int i = ordem; i >= 0; --i)
+	{
+		rnn += atoi(argv[i]) * pow(10, ordem--);
+	}
+	
+	add2bin(argv);
 }
 
+/*Funcao de desfragmentacao, recebe o arquivo fragmentado 
+ *e retorna um ponteiro para outro arquivo criado, este
+ *desfragmentado
+ */ 
 void binDefrag(void) {
+	
+	//Abre o arquivo corrente
+	FILE *current = fopen("defrag.dat", "r+b");
+	//Volta o fp de current para o inicio do arquivo
+	fseek(current, 0, SEEK_SET);
 
+	//Renomeia e se receber um arquivo nulo ou nao conseguir renomear, relata o erro
+	if(current == NULL || rename("defrag.dat", "defragold.dat")) {
+		fprintf(stdout, "Falha no processamento do arquivo.\n");
+		return;
+	}
+
+	//Cria o novo arquivo 
+	FILE *new = fopen("defrag.dat", "r+b");
+	//Volta o fp de current para o inicio do arquivo
+	fseek(new, 0, SEEK_SET); 
+
+	//Copia o cabecalho
+	char status;
+	fread(&status, sizeof(char), 1, current);
+	fwrite(&status, sizeof(char), 1, new);
+
+    int stackTop;
+    fread(&stackTop, sizeof(int), 1, current);
+    fwrite(&stackTop, sizeof(int), 1, new);
+
+	//Loop de copia ate o final do arquivo
+	int removed = -1;
+	int readInt;
+	char c;
+	int fieldTam;
+	int total_tam;
+
+	while(workingfeof(current, eof(current)) == 0) {
+
+		total_tam = 16;
+		fread(&readInt, sizeof(int), 1, current);
+
+		//Caso nao seja um registro removido
+		if(readInt != removed){
+
+			//Copia "Cod Escola"
+			fwrite(&readInt, sizeof(int), 1, new);
+
+			//Copia campos de tamanho fixo
+			for (int i = 0; i < 12; ++i) {
+				c = getc(current);
+				putc(c, new);
+			}
+
+			//Recebe e escreve o tamanho do campo "Nome Escola"
+			fread(&fieldTam, sizeof(int), 1, current);
+			fwrite(&fieldTam, sizeof(int), 1, new);
+			total_tam += fieldTam;
+			//Copia "Nome Escola"
+			for (int i = 0; i < fieldTam; ++i) {
+				c = getc(current);
+				putc(c, new);
+			}
+
+			//Recebe e escreve o tamanho do campo "Municipio"
+			fread(&fieldTam, sizeof(int), 1, current);
+			fwrite(&fieldTam, sizeof(int), 1, new);
+			total_tam += fieldTam;
+			//Copia "Municipio"
+			for (int i = 0; i < fieldTam; ++i) {
+				c = getc(current);
+				putc(c, new);
+			}
+
+			//Recebe e escreve o tamanho do campo "Prestadora"
+			fread(&fieldTam, sizeof(int), 1, current);
+			fwrite(&fieldTam, sizeof(int), 1, new);
+			total_tam += fieldTam;
+			//Copia "Endereco"
+			for (int i = 0; i < fieldTam; ++i) {
+				c = getc(current);
+				putc(c, new);
+			}
+			//Pula ate o proximo registro
+			fseek(current, 86-total_tam, SEEK_CUR);
+			fseek(new, 86-total_tam, SEEK_CUR);
+		}
+
+		//Caso seja um registro removido
+		else {
+			//Pula o registro todo - os 4 primeiros bytes ja lidos
+			fseek(current, 82, SEEK_CUR);
+		}
+	}
+
+	//Deleta o arquivo antigo
+	remove("defragold.dat");
+
+	//Relata sucesso
+	fprintf(stdout, "Arquivo de dados compactado com sucesso.\n");
+	//Retorna o novo arquivo
+	return;
 }
 
 void printPilha(FILE *fp, int top, int offset) {

@@ -3,6 +3,7 @@
  * Ricardo A Araujo - 9364890
  * Tiago Esperança Triques - 9037713
  * Fábio Augusto Romanini Pinto - 9791312
+ * Enzo Bustamante Junco Mendonca - 9863437
  */
 
 #include "tad.h"
