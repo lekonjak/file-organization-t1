@@ -26,5 +26,5 @@ test_setup:
 ifeq (,$(wildcard test_log))
 	mkdir test_log
 else
-	rm -rf test_log/* 
+	rm -rf test_log/*
 endif

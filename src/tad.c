@@ -1,5 +1,6 @@
 #include "tad.h"
 #include "utils.h"
+#include <math.h>
 
 struct registro {
     // Campos de tamanho fixo
@@ -15,7 +16,7 @@ struct registro {
 
 struct header {
     char status;
-    int stackTop; //🔝
+    int stackTop; //
 };
 
 enum {
@@ -144,6 +145,7 @@ int workingfeof(FILE *fp, int size) {
         return 0;
     return 1;
 }
+
 
 void bin2out(void) {
     FILE *fp;
@@ -519,8 +521,12 @@ void add2bin(char *argv[]) {
     fclose(fp);
 }
 
+/*Funcao de update, recebe o argumento do console,
+ *busca o registro por RNN e o troca seus campos pelos
+ *campos do argumento
+ */
 void updateBin(char *argv[]) {
-    (void) argv;
+    return;
 }
 
 /* Função para desfragmentar arquivo de dados
@@ -533,7 +539,8 @@ void binDefrag(void) {
     //Renomear o arquivo de dados "antigo"
     //Para que o atualizado sempre esteja com o mesmo nome
     if(rename("output.dat", "output.dat.old") != 0) {
-        fprintf(stdout, "output.dat does not exist\n");
+        fprintf(stdout, "Falha no processamento do arquivo.\n");
+        fprintf(stderr, "output.dat does not exist\n");
         return;
     }
 
@@ -543,8 +550,8 @@ void binDefrag(void) {
 
     int status = 1;
     int stackTop = -1;
-    fwrite(&status, sizof(char), 1, fp_new);
-    fwrite(&stackTop, sizeof(int), 1 fp_new);
+    fwrite(&status, sizeof(char), 1, fp_new);
+    fwrite(&stackTop, sizeof(int), 1, fp_new);
 
     Registro r = {0};
     int max = eof(fp_old);
@@ -553,26 +560,35 @@ void binDefrag(void) {
     fseek(fp_old, sizeof(char) + sizeof(int), SEEK_SET);
 
     while(!workingfeof(fp_old, max)) {
+        regSize += COD_INEP_SIZE + UF_SIZE + DATA_ATIV_SIZE + 3 * sizeof(int);
         fread(&r.codINEP, COD_INEP_SIZE, 1, fp_old);
+
+#ifdef DEBUG
+        fprintf(stderr, "codInep is %d\n", r.codINEP);
+#endif
 
         //Ler todos os campos do registro
         //Se não foi removido, ler o restante dos campos
         //e escrever no novo arquivo de dados
         if(r.codINEP != -1) {
-            fread(r.dataAtiv, 10*sizeof(char), 1, fp);
-            fread(r.uf, 2*sizeof(char), 1, fp);
-            fread(&sizeEscola, sizeof(int), 1, fp);
+            fread(r.dataAtiv, 10*sizeof(char), 1, fp_old);
+            fread(r.uf, 2*sizeof(char), 1, fp_old);
+            fread(&sizeEscola, sizeof(int), 1, fp_old);
             r.nomeEscola = calloc (sizeEscola+1, sizeof(char));
-            fread(r.nomeEscola, sizeEscola*sizeof(char), 1, fp);
-            fread(&sizeMunicipio, sizeof(int), 1, fp);
+            fread(r.nomeEscola, sizeEscola*sizeof(char), 1, fp_old);
+            fread(&sizeMunicipio, sizeof(int), 1, fp_old);
             r.municipio = calloc (sizeMunicipio+1, sizeof(char));
-            fread(r.municipio, sizeMunicipio*sizeof(char), 1, fp);
-            fread(&sizePrestadora, sizeof(int), 1, fp);
+            fread(r.municipio, sizeMunicipio*sizeof(char), 1, fp_old);
+            fread(&sizePrestadora, sizeof(int), 1, fp_old);
             r.prestadora = calloc (sizePrestadora+1, sizeof(char));
-            fread(r.prestadora, sizePrestadora*sizeof(char), 1, fp);
+            fread(r.prestadora, sizePrestadora*sizeof(char), 1, fp_old);
 
             //Reescrever no novo arquivo
             //TODO arrumar sizePrestadora
+#ifdef DEBUG
+            fprintf(stderr, "new file at %ld\n", ftell(fp_new));
+#endif
+
             fwrite(&r.codINEP, sizeof(int), 1, fp_new);
             fwrite(r.dataAtiv, 10*sizeof(char), 1, fp_new);
             fwrite(r.uf, 2*sizeof(char), 1, fp_new);
@@ -588,20 +604,21 @@ void binDefrag(void) {
             free(r.prestadora);
         } else {
             //Removed, skip this one
-            fseek(fp, REG_SIZE - COD_INEP_SIZE, SEEK_CUR);
+            fseek(fp_old, REG_SIZE - COD_INEP_SIZE, SEEK_CUR);
+            continue;
         }
     }
 
     //Quando finalizar, escrever 0 no status
     status = 0;
-    fseek(fp, 0, SEEK_SET);
-    fwrite(&status, sizeof(char), 1, fp);
+    fseek(fp_new, 0, SEEK_SET);
+    fwrite(&status, sizeof(char), 1, fp_new);
 
     fclose(fp_old);
     fclose(fp_new);
 
     //Deletar arquivo de dados antigo
-    remove("output.dat.old");
+    //remove("output.dat.old");
 }
 
 /* Função que imprime a pilha de registros removidos
