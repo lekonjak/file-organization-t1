@@ -529,15 +529,71 @@ void updateBin(char *argv[]) {
 
 	//Converte o rnn
 	int ordem;
-	int rnn;
-	for (int i = 3; argv[i] != '\0'; ++i)
-		ordem++;
-	for (int i = ordem; i >= 0; --i)
-	{
-		rnn += atoi(argv[i]) * pow(10, ordem--);
-	}
-	
-	add2bin(argv);
+	int rnn = atoi(argv[2]);
+
+    //Copia os dados
+    Registro r = {0};
+    r.codINEP = atoi(argv[3]);
+    strcpy(r.dataAtiv, argv[4]);
+    strcpy(r.uf, argv[5]);
+    r.nomeEscola = argv[6];
+    r.municipio = argv[7];
+    r.prestadora = argv[8];
+
+    //Abre o arquivo corrente
+    FILE *current = fopen("output.dat", "r+b");
+
+    //Se o arquivo for nulo, relata o erro
+    if(current == NULL){
+        printf("Falha no processamento do arquivo.\n");
+        return;
+    }
+
+    //Verifica se e um rnn plausivel, se nao for, relata o erro
+    if(rnn* REG_SIZE > eof(current)){
+        printf("Registro inexistente.\n");
+        return;
+    } 
+
+    //Vai para o rnn
+    fseek(current, 5+(rnn* REG_SIZE) , SEEK_SET);
+    int status;
+    fread(&status, sizeof(int), 1, current);
+
+    //Se tiver sido removido relata o erro
+    if(status == -1) {
+        printf("Registro inexistente.\n");
+        return;
+    }
+    //Caso nao ocorra nenhum erro
+    else { 
+        //Volta o fp 
+        fseek(current, -4, SEEK_CUR);
+        //Escreve os campos fixos
+        int regSize = FIX_FIELDS_SIZE + 3 * sizeof(int);
+        fwrite(&r.codINEP, sizeof(int), 1, current);
+        fwrite(r.dataAtiv, sizeof(char), 10, current);
+        fwrite(r.uf, sizeof(char), 2, current);
+        //Verifica o tamanho, escreve o tamanho e o campo variavel "Nome Escola"
+        int size = strlen(r.nomeEscola);
+        regSize += size;
+        fwrite(&size, sizeof(int), 1, current);
+        fwrite(r.nomeEscola, sizeof(char), size, current);
+        //Verifica o tamanho, escreve o tamanho e o campo variavel "Municipio"
+        size = strlen(r.municipio);
+        regSize += size;
+        fwrite(&size, sizeof(int), 1, current);
+        fwrite(r.municipio, sizeof(char), size, current);
+        ////Verifica o tamanho, escreve o tamanho e o campo variavel "Prestadora"
+        size = REG_SIZE - regSize;
+        char *formatted_prestadora = (char *) calloc(size, sizeof(char));
+        formatted_prestadora = strcpy(formatted_prestadora, r.prestadora);
+        fwrite(&size, sizeof(int), 1, current);
+        fwrite(formatted_prestadora, sizeof(char), size, current);
+        free(formatted_prestadora);
+        printf("Registro alterado com sucesso.\n");
+    }
+    fclose(current);
 }
 
 /*Funcao de desfragmentacao, recebe o arquivo fragmentado 
@@ -547,18 +603,18 @@ void updateBin(char *argv[]) {
 void binDefrag(void) {
 	
 	//Abre o arquivo corrente
-	FILE *current = fopen("defrag.dat", "r+b");
+	FILE *current = fopen("output.dat", "r+b");
 	//Volta o fp de current para o inicio do arquivo
 	fseek(current, 0, SEEK_SET);
 
 	//Renomeia e se receber um arquivo nulo ou nao conseguir renomear, relata o erro
-	if(current == NULL || rename("defrag.dat", "defragold.dat")) {
+	if(current == NULL || rename("output.dat", "outputold.dat") == -1) {
 		fprintf(stdout, "Falha no processamento do arquivo.\n");
 		return;
 	}
 
 	//Cria o novo arquivo 
-	FILE *new = fopen("defrag.dat", "r+b");
+	FILE *new = fopen("output.dat", "r+b");
 	//Volta o fp de current para o inicio do arquivo
 	fseek(new, 0, SEEK_SET); 
 
@@ -637,7 +693,7 @@ void binDefrag(void) {
 	}
 
 	//Deleta o arquivo antigo
-	remove("defragold.dat");
+	remove("outputold.dat");
 
 	//Relata sucesso
 	fprintf(stdout, "Arquivo de dados compactado com sucesso.\n");
