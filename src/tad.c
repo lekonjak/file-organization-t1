@@ -521,12 +521,77 @@ void add2bin(char *argv[]) {
     fclose(fp);
 }
 
-/*Funcao de update, recebe o argumento do console,
- *busca o registro por RNN e o troca seus campos pelos
- *campos do argumento
+/* Funcao de update, recebe o argumento do console,
+ * busca o registro por RNN e o troca seus campos pelos
+ * campos do argumento
  */
 void updateBin(char *argv[]) {
-    return;
+	//Converte o rnn
+	int rnn = atoi(argv[2]);
+
+    //Copia os dados
+    Registro r = {0};
+    r.codINEP = atoi(argv[3]);
+    strcpy(r.dataAtiv, argv[4]);
+    strcpy(r.uf, argv[5]);
+    r.nomeEscola = argv[6];
+    r.municipio = argv[7];
+    r.prestadora = argv[8];
+
+    //Abre o arquivo corrente
+    FILE *current = fopen("output.dat", "r+b");
+
+    //Se o arquivo for nulo, relata o erro
+    if(current == NULL){
+        printf("Falha no processamento do arquivo.\n");
+        return;
+    }
+
+    //Verifica se e um rnn plausivel, se nao for, relata o erro
+    if(rnn* REG_SIZE > eof(current)){
+        printf("Registro inexistente.\n");
+        return;
+    }
+
+    //Vai para o rnn
+    fseek(current, 5+(rnn* REG_SIZE) , SEEK_SET);
+    int status;
+    fread(&status, sizeof(int), 1, current);
+
+    //Se tiver sido removido relata o erro
+    if(status == -1) {
+        printf("Registro inexistente.\n");
+        return;
+    }
+    //Caso nao ocorra nenhum erro
+    else {
+        //Volta o fp
+        fseek(current, -4, SEEK_CUR);
+        //Escreve os campos fixos
+        int regSize = FIX_FIELDS_SIZE + 3 * sizeof(int);
+        fwrite(&r.codINEP, sizeof(int), 1, current);
+        fwrite(r.dataAtiv, sizeof(char), 10, current);
+        fwrite(r.uf, sizeof(char), 2, current);
+        //Verifica o tamanho, escreve o tamanho e o campo variavel "Nome Escola"
+        int size = strlen(r.nomeEscola);
+        regSize += size;
+        fwrite(&size, sizeof(int), 1, current);
+        fwrite(r.nomeEscola, sizeof(char), size, current);
+        //Verifica o tamanho, escreve o tamanho e o campo variavel "Municipio"
+        size = strlen(r.municipio);
+        regSize += size;
+        fwrite(&size, sizeof(int), 1, current);
+        fwrite(r.municipio, sizeof(char), size, current);
+        ////Verifica o tamanho, escreve o tamanho e o campo variavel "Prestadora"
+        size = REG_SIZE - regSize;
+        char *formatted_prestadora = (char *) calloc(size, sizeof(char));
+        formatted_prestadora = strcpy(formatted_prestadora, r.prestadora);
+        fwrite(&size, sizeof(int), 1, current);
+        fwrite(formatted_prestadora, sizeof(char), size, current);
+        free(formatted_prestadora);
+        printf("Registro alterado com sucesso.\n");
+    }
+    fclose(current);
 }
 
 /* Função para desfragmentar arquivo de dados
@@ -536,6 +601,7 @@ void updateBin(char *argv[]) {
  * em outro arquivo de dados
  */
 void binDefrag(void) {
+<<<<<<< HEAD
     //Renomear o arquivo de dados "antigo"
     //Para que o atualizado sempre esteja com o mesmo nome
     if(rename("output.dat", "output.dat.old") != 0) {
@@ -563,10 +629,6 @@ void binDefrag(void) {
         regSize += COD_INEP_SIZE + UF_SIZE + DATA_ATIV_SIZE + 3 * sizeof(int);
         fread(&r.codINEP, COD_INEP_SIZE, 1, fp_old);
 
-#ifdef DEBUG
-        fprintf(stderr, "codInep is %d\n", r.codINEP);
-#endif
-
         //Ler todos os campos do registro
         //Se não foi removido, ler o restante dos campos
         //e escrever no novo arquivo de dados
@@ -582,12 +644,6 @@ void binDefrag(void) {
             fread(&sizePrestadora, sizeof(int), 1, fp_old);
             r.prestadora = calloc (sizePrestadora+1, sizeof(char));
             fread(r.prestadora, sizePrestadora*sizeof(char), 1, fp_old);
-
-            //Reescrever no novo arquivo
-            //TODO arrumar sizePrestadora
-#ifdef DEBUG
-            fprintf(stderr, "new file at %ld\n", ftell(fp_new));
-#endif
 
             fwrite(&r.codINEP, sizeof(int), 1, fp_new);
             fwrite(r.dataAtiv, 10*sizeof(char), 1, fp_new);
@@ -614,11 +670,13 @@ void binDefrag(void) {
     fseek(fp_new, 0, SEEK_SET);
     fwrite(&status, sizeof(char), 1, fp_new);
 
+    fprintf(stdout, "Arquivo de dados compactado com sucesso.\n");
+
     fclose(fp_old);
     fclose(fp_new);
 
     //Deletar arquivo de dados antigo
-    //remove("output.dat.old");
+    remove("output.dat.old");
 }
 
 /* Função que imprime a pilha de registros removidos
