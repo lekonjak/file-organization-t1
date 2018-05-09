@@ -64,11 +64,33 @@ marcar registro como inutilizado - * - e armazenar rrn na pilha de registros rem
 
 # Seção 6 - Inserção de novos registros
 
-inserir primeiramente nos espaços vazios
+## add2bin
+
+Começamos convertendo o argumento do console em seus respectivos campos.
+Abrimos o arquivo corrente e verificamos se o arquivo existe, se nao relatamos o erro.
+Muda-se o status no cabeçalho e se copia o topo da pilha.
+Le se a pilha e verifica se ha espacos para serem reaproveitados.
+Se houverem, inserimos o registro no espaco do ultimo registro removido.
+Se nao houverem, inserimos o registro ao final do arquivo.
+Retornamos o status do cabecalho, e escrevemos o novo topo da pilha.
+Fechamos o arquivo e relatamos sucesso na inserção
+
+
 
 # Seção 7 - Atualização dos campos do registro
 
-procurar pelo registro: se existir, substituir, caso contrario mostrar mensagem de erro
+## updateBin
+
+Funcao de update, recebe o argumento do console, busca o registro por RNN e o troca seus campos pelos
+campos do argumento.
+Começamos convertendo o argumento do console em seus respectivos campos.
+Abrimos o arquivo corrente e verificamos se:
+1 - Ele existe;
+2 - Se buscamos por um rnn plausivel, dado o tamanho do arquivo.
+Caso estas condicoes nao sejam cumpridas relata-se o erro ao usuario.
+Caso sejam, desloca-se o ponteiro de arquivo ate o rnn, onde verificamos se o registro existe ou foi removido, relatando erro neste ultimo caso.
+No caso de nenhum desses erros ocorrerem, estamos aptos a trocar os campos antigos pelos campos, ja convertidos do argumento.
+Apos a realizacao do update, relatamos sucesso e fechamos o arquivo.
 
 # Seção 8 - Compactação (desfragmentação)
 
