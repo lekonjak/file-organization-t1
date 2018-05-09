@@ -1,9 +1,8 @@
-/* Botem teus nomes aqui, bando de bagual
- *
- * Ricardo A Araujo - 9364890
- * Tiago Esperança Triques - 9037713
- * Fábio Augusto Romanini Pinto - 9791312
- * Enzo Bustamante Junco Mendonca - 9863437
+/*
+* Enzo Bustamante Junco Mendonca    9863437
+* Fábio Augusto Romanini Pinto      9791312
+* Ricardo A Araujo                  9364890
+* Tiago Esperança Triques           9037713
  */
 
 #include "tad.h"

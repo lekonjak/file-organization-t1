@@ -146,12 +146,13 @@ int workingfeof(FILE *fp, int size) {
     return 1;
 }
 
-
+/* Função para recuperar todos registros não removidos do arquivo de dados
+ * e imprimir as informações na tela.
+ */
 void bin2out(void) {
     FILE *fp;
     Registro r = {0};
     int sizeEscola, sizeMunicipio, sizePrestadora;
-    long offset = 5;
 
     fp = fopen("output.dat", "rb");
 
@@ -159,7 +160,7 @@ void bin2out(void) {
         fprintf(stdout, "Falha no processamento do arquivo\n");
     }
 
-    fseek(fp, offset, SEEK_SET);
+    fseek(fp, sizeof(char) + sizeof(int), SEEK_SET);
 
     int max = eof(fp);
 
@@ -277,8 +278,10 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
         //Compara campo buscado com o do registro
         //Se for igual, imprime tal registro
         if(!cmp(element, this)) {
-            catReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
-            flag++;
+            if(r.codINEP != -1) {
+                catReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
+                flag++;
+            }
         }
 
         free(r.nomeEscola);
