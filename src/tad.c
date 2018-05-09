@@ -522,6 +522,7 @@ void add2bin(char *argv[]) {
     fwrite(&status, sizeof(char), 1, fp);
     fwrite(&newTop, sizeof(int), 1, fp);
     fclose(fp);
+    printf("Falha no processamento do arquivo.\n"); 
 }
 
 /* Funcao de update, recebe o argumento do console,
