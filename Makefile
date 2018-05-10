@@ -7,8 +7,6 @@ REGSEQ = $(shell seq 0 ${REGLAST})
 
 compile:
 	gcc -o $(EXECUTABLE) src/*.c
-run:
-	./$(EXECUTABLE)
 dcompile:
 	gcc -o $(EXECUTABLE) src/*.c -D DEBUG -g -Wall -Wextra
 drun:

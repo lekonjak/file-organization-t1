@@ -215,6 +215,8 @@ void stderrCatReg(Registro *reg, int sizeEscola, int sizeMunicipio, int sizePres
             sizePrestadora, reg->prestadora);
 }
 
+/* Função que imprime os dados de todos os registros que contenham um certo campo buscado
+ */
 void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
     FILE *fp;
     Registro r = {0};
@@ -248,11 +250,6 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
         fread(r.prestadora, sizeof(char)*sizePrestadora, 1, fp);
 
         sizePrestadora = strlen(r.prestadora);
-
-#ifdef DEBUG
-        fprintf(stderr, "Category %c\n", category[0]);
-        stderrCatReg(&r, sizeEscola, sizeMunicipio, sizePrestadora);
-#endif
 
         //Retorna qual dos campos estamos querendo fazer a busca
         this = category[0] == 'c' ? &r.codINEP :\
@@ -296,6 +293,10 @@ void bin2outGrep(char *category, void *element, int (*cmp)(void *, void *)) {
     fclose(fp);
 }
 
+/* Função que converte uma string para um número int caso for necessário
+ * Se o conteúdo de *c for um número, ele será convertido para inteiro.
+ * Se for uma string nada será feito.
+ */
 void *maybeConvert(char *c, char d) {
     if(d == 'c') {
         int *a = (int *) malloc (sizeof(int));
@@ -310,9 +311,6 @@ void *maybeConvert(char *c, char d) {
  * Caso contrário, a função compara strings
  */
 void *selectCmp(char cat) {
-#ifdef DEBUG
-    fprintf(stderr, "cmp int? %s\n", cat == 'c'? "yes" : "no");
-#endif
     return cat == 'c' ? &intCmp : &sstrCmp;
 }
 
@@ -320,9 +318,6 @@ void *selectCmp(char cat) {
  * Retorna 0 se forem iguais, 1 caso contrário
  */
 int intCmp(void *a, void *b) {
-#ifdef DEBUG
-    fprintf(stderr, "comparing %d %d.... equal? %s\n", *((int *)(a)), *((int *)(b)), *((int *)(a)) == *((int *)(b)) ? "yes" : "no");
-#endif
     return *((int *)(a)) == *((int *)(b)) ? 0 : 1;
 }
 
@@ -330,16 +325,15 @@ int intCmp(void *a, void *b) {
  * Retorna 0 se forem iguais, 1 caso contrário
  */
 int sstrCmp(void *a, void *b) {
-#ifdef DEBUG
-    fprintf(stderr, "comparing %s %s.... equal? %s\n", (char *)a, (char *)b,strcmp((char *)a, (char *)b) == 0 ? "yes" : "no");
-#endif
     return strcmp((char *)a, (char *)b);
 }
 
+/* Função que retorna os dados do registro de RRN especificado.
+ *
+ * Checamos se existe um registro com o tal RRN. Se não houver, exibe-se uma mensagem de erro
+ * Caso o registro for encontrado, imprimir os dados na tela.
+ */
 void bin2outRRN(int RRN) {
-    /*
-     *  we need to search by RRN not directly, but dinamically - next step is to write a search function
-     * */
     FILE *fp;
     Registro r = {0};
     int sizeEscola, sizeMunicipio, sizePrestadora;
@@ -377,7 +371,7 @@ void bin2outRRN(int RRN) {
             free(r.municipio);
             free(r.prestadora);
         } else {
-            printf("Registro inexistente.\n");
+            fprintf(stdout, "Registro inexistente.\n");
         }
     } else {
         fprintf(stdout, "Registro inexistente.\n");
@@ -386,6 +380,10 @@ void bin2outRRN(int RRN) {
     fclose(fp);
 }
 
+/* Função que remove o registro especificado pelo RRN passado por parâmetro
+ * Caso o registro já tenha sido removido ou caso seja inexistente, uma mensagem de erro é exibida.
+ * A remoção é apenas lógica - marcamos os registros removidos com -1 no campo codINEP.
+ */
 void bin2trashRRN(int RRN) {
     FILE *fp = fopen("output.dat", "r+b");
 
@@ -395,10 +393,6 @@ void bin2trashRRN(int RRN) {
     }
 
     int max = eof(fp);
-
-#ifdef DEBUG
-    fprintf(stderr, "File size is %d\n", max);
-#endif
 
     int stackTop;
     int removed = -1;
@@ -421,29 +415,14 @@ void bin2trashRRN(int RRN) {
 
     fread(&check, sizeof(int), 1, fp);
 
-#ifdef DEBUG
-    fprintf(stdout, "check is %d\n", check);
-#endif
-
     if(check == -1) {
         fprintf(stdout, "Registro inexistente.\n");
         fclose(fp);
         return;
     }
 
-#ifdef DEBUG
-    fprintf(stderr, "ftell is %ld\n", ftell(fp));
-#endif
-
     //Go back 4 bytes
     fseek(fp, -4, SEEK_CUR);
-
-#ifdef DEBUG
-    fprintf(stderr, "ftell after fseek is %ld\n", ftell(fp));
-#endif
-
-    //TODO descobrir porque o fwrite não funciona
-    //Modo incorreto na abertuda do arquivo?
 
     //Escrever -1 para sinalizar registro como "apagado"
     fwrite(&removed, sizeof(int), 1, fp);
@@ -460,6 +439,12 @@ void bin2trashRRN(int RRN) {
     fclose(fp);
 }
 
+/* Função que adiciona um novo registro no arquivo de dados
+ *
+ * A inserção começa com uma "busca" pelos registros removidos:
+ *  - Se algum registro foi anteriormente removido, o novo entrará no lugar dele.
+ *  - Caso contrário, registro será inserido no final
+ */
 void add2bin(char *argv[]) {
     Registro r = {0};
     r.codINEP = atoi(argv[2]);
@@ -522,7 +507,7 @@ void add2bin(char *argv[]) {
     fwrite(&status, sizeof(char), 1, fp);
     fwrite(&newTop, sizeof(int), 1, fp);
     fclose(fp);
-    printf("Falha no processamento do arquivo.\n"); 
+    printf("Falha no processamento do arquivo.\n");
 }
 
 /* Funcao de update, recebe o argumento do console,
@@ -605,7 +590,6 @@ void updateBin(char *argv[]) {
  * em outro arquivo de dados
  */
 void binDefrag(void) {
-<<<<<<< HEAD
     //Renomear o arquivo de dados "antigo"
     //Para que o atualizado sempre esteja com o mesmo nome
     if(rename("output.dat", "output.dat.old") != 0) {
