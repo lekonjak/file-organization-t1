@@ -137,6 +137,8 @@ Após a realização do update, relatamos sucesso e fechamos o arquivo.\
 
 # Seção 8 - Compactação (desfragmentação)
 
+## binDefrag
+
 Começamos renomeando o arquivo de dados fragmentado para output.dat.old\
 Essa operação poderá falhar caso não exista um arquivo de dados anteriormente.\
 Neste caso, imprimimos uma mensagem de erro.\
@@ -148,6 +150,8 @@ Após recuperar todos os registros, atualizar o registro de cabeçalho, indicand
 Imprimir uma mensagem na tela informando que a compactação foi bem sucedida.\
 
 # Seção 9 - Pilha dos RRNs removidos
+
+## recBin
 
 Função que imprime a pilha de registros removidos.
 
