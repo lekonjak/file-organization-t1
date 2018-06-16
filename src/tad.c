@@ -29,10 +29,10 @@ enum {
 };
 
 #define COD_INEP_SIZE sizeof(int)
-#define UF_SIZE 2
-#define DATA_ATIV_SIZE 10
+#define UF_SIZE 2*sizeof(char)
+#define DATA_ATIV_SIZE 10*sizeof(char)
 #define FIX_FIELDS_SIZE UF_SIZE + DATA_ATIV_SIZE + COD_INEP_SIZE
-#define REG_SIZE 87
+#define REG_SIZE 87*sizeof(char)
 
 /* A função lê uma linha de cada vez do arquivo csv, separa cada campo, e escreve os dados
  * em outro arquivo binário. Uma mensagem de erro é printada caso o arquivo de entrada e/ou saída
@@ -477,7 +477,8 @@ void add2bin(char *argv[]) {
         fseek(fp, offset, SEEK_CUR);                    // para ler diretamente o pŕoximo topo
         fread(&newTop, sizeof(int), 1, fp);
         fseek(fp, -2 * sizeof(int), SEEK_CUR); // retrocedemos ao começo do registro
-        printf("%ld\n", ftell(fp));
+        //Outro print desnecessário aqui
+        //printf("%ld\n", ftell(fp));
     }
 
     int regSize = FIX_FIELDS_SIZE + 3 * sizeof(int);
@@ -507,7 +508,8 @@ void add2bin(char *argv[]) {
     fwrite(&status, sizeof(char), 1, fp);
     fwrite(&newTop, sizeof(int), 1, fp);
     fclose(fp);
-    printf("Falha no processamento do arquivo.\n");
+    //Print desnecessário aqui
+    //printf("Falha no processamento do arquivo.\n");
 }
 
 /* Funcao de update, recebe o argumento do console,
