@@ -28,6 +28,16 @@ enum {
     UF
 };
 
+typedef struct Node
+{
+       
+}*node;
+
+typedef struct Link
+{
+
+}*link;
+
 #define COD_INEP_SIZE sizeof(int)
 #define UF_SIZE 2*sizeof(char)
 #define DATA_ATIV_SIZE 10*sizeof(char)
@@ -715,3 +725,27 @@ void recBin(void) {
     fwrite(&status, sizeof(char), 1, fp);
     fclose(fp);
 }
+
+/*Buffer Info Append, informacoes de faults e hits guardadas apos cada execuçao*/
+void bufferInfo(int fault, int hit);
+{
+    //Texto a ser escrito
+    char pf[12] = "Page fault: "
+    char ph[12] = "; Page hit: "
+    //Abre o arquivo e verifica se pode ser utilizado
+    FILE *append;
+    fopen("buffer-info.text", 'a');
+    if(append == NULL){
+        fprintf(stdout, "Falha no processamento do arquivo 'buffer-info.text'.\n");
+        return;
+    }
+    //Escreve no final 
+    fwrite(pf, sizeof(char), 12, append);
+    fwrite(&fault, sizeof(int), 1, append);
+    fwrite(ph, sizeof(char), 12, append);
+    fwrite(&hit, sizeof(int), 1, append);
+
+    fclose(append);
+}
+
+/**/
