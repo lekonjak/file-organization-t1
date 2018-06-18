@@ -28,21 +28,27 @@ enum {
     UF
 };
 
-typedef struct Node
-{
-       
-}*node;
+typedef struct no{
+    int n;
+    int filho[10];
+    int cod[9];
+    int rnn[9];
+}*No;
 
-typedef struct Link
-{
-
-}*link;
+typedef struct BufferPool{
+    No pool;
+}*bufferPool;
 
 #define COD_INEP_SIZE sizeof(int)
 #define UF_SIZE 2*sizeof(char)
 #define DATA_ATIV_SIZE 10*sizeof(char)
 #define FIX_FIELDS_SIZE UF_SIZE + DATA_ATIV_SIZE + COD_INEP_SIZE
 #define REG_SIZE 87*sizeof(char)
+#define NODE_SIZE 116*sizeof(char)
+
+//Page hit e Page Faults
+int pageFault = 0;
+int pageHit = 0;
 
 /* A função lê uma linha de cada vez do arquivo csv, separa cada campo, e escreve os dados
  * em outro arquivo binário. Uma mensagem de erro é printada caso o arquivo de entrada e/ou saída
@@ -748,4 +754,58 @@ void bufferInfo(int fault, int hit);
     fclose(append);
 }
 
-/**/
+/*Funçao que cria o buffer pool, e armazena o no raiz nela*/
+bufferPool criaBuffer()
+{
+    //Cria Buffer Pool
+    bufferPool buffer = (*bufferPool) malloc(sizeof(BufferPool));
+    //Aloca elementos do buffer pool
+    buffer->pool = (*No) malloc(sizeof(No) * 5);
+
+    //Abre o arquivo de indice
+    FILE *indice;
+    fopen("indice.dat", "rb");
+
+    //Busca o rnn local da raiz
+    int root_rnn;
+    fseek(indice, sizeof(char), SEEK_SET);
+    fread(&root_rnn, sizeof(int), 1, indice);
+
+    //Busca a raiz
+    fseek(indice, NODE_SIZE*root_rnn, SEEK_CUR);
+
+    //Copia os elementos
+    fread(buffer->pool[0]->n, sizeof(int), 1, indice);
+    for (int i = 0; i < buffer->pool[0]->n; ++i)
+    {
+        //Le o ponteiro
+        fread(buffer->pool[0]->filho[i], sizeof(No), 1, indice);
+        //Le o cod
+        fread(buffer->pool[0]->cod[i], sizeof(int), 1, indice);
+        //Le o rnn
+        fread(buffer->pool[0]->rnn[i], sizeof(int), 1, indice); 
+    }
+    //Le o ultimo ponteiro
+    fread(buffer->pool[0]->filho[9], sizeof(No), 1, indice);
+
+    fclose(indice);
+    //Retorna o bufferPool
+    return buffer;
+}   
+
+//Funcao que retorna o 
+No *bufferGetNo(bufferPool buffer, int cod)
+{   
+    //Busca em cada elemento 
+    for (int i = 0; i < 5; ++i)
+    {
+        //SE FOR A PAGINA QUE QUEREMOS
+        if(buffer->pool[i]->codINEP == cod)
+        {
+            return buffer->pool[i];
+        }
+    }
+}
+
+
+
