@@ -33,11 +33,11 @@ typedef struct no{
     int filho[10];
     int cod[9];
     int rnn[9];
-}*No;
+}No;
 
 typedef struct BufferPool{
-    No pool;
-}*bufferPool;
+    No pool[5];
+}bufferPool;
 
 #define COD_INEP_SIZE sizeof(int)
 #define UF_SIZE 2*sizeof(char)
@@ -47,8 +47,11 @@ typedef struct BufferPool{
 #define NODE_SIZE 116*sizeof(char)
 
 //Page hit e Page Faults
-int pageFault = 0;
-int pageHit = 0;
+int fault = 0;
+int hit = 0;
+
+//Most Recently Used Flag
+int mru;
 
 /* A função lê uma linha de cada vez do arquivo csv, separa cada campo, e escreve os dados
  * em outro arquivo binário. Uma mensagem de erro é printada caso o arquivo de entrada e/ou saída
@@ -733,14 +736,14 @@ void recBin(void) {
 }
 
 /*Buffer Info Append, informacoes de faults e hits guardadas apos cada execuçao*/
-void bufferInfo(int fault, int hit);
+void bufferInfo()
 {
     //Texto a ser escrito
-    char pf[12] = "Page fault: "
-    char ph[12] = "; Page hit: "
+    char pf[12] = {'P','a','g','e',' ','f','a','u','l','t',':',' '};
+    char ph[12] = {';',' ','P','a','g','e',' ','h','i','t',':',' '};
     //Abre o arquivo e verifica se pode ser utilizado
     FILE *append;
-    fopen("buffer-info.text", 'a');
+    fopen("buffer-info.text", "a");
     if(append == NULL){
         fprintf(stdout, "Falha no processamento do arquivo 'buffer-info.text'.\n");
         return;
@@ -758,13 +761,11 @@ void bufferInfo(int fault, int hit);
 bufferPool criaBuffer()
 {
     //Cria Buffer Pool
-    bufferPool buffer = (*bufferPool) malloc(sizeof(BufferPool));
-    //Aloca elementos do buffer pool
-    buffer->pool = (*No) malloc(sizeof(No) * 5);
+    bufferPool buffer;
 
     //Abre o arquivo de indice
     FILE *indice;
-    fopen("indice.dat", "rb");
+    indice = fopen("indice.dat", "rb");
 
     //Busca o rnn local da raiz
     int root_rnn;
@@ -772,40 +773,87 @@ bufferPool criaBuffer()
     fread(&root_rnn, sizeof(int), 1, indice);
 
     //Busca a raiz
-    fseek(indice, NODE_SIZE*root_rnn, SEEK_CUR);
+    fseek(indice, (NODE_SIZE*root_rnn) + sizeof(int), SEEK_CUR);
 
     //Copia os elementos
-    fread(buffer->pool[0]->n, sizeof(int), 1, indice);
-    for (int i = 0; i < buffer->pool[0]->n; ++i)
+    fread(&buffer.pool[0].n, sizeof(int), 1, indice);
+    for (int i = 0; i < buffer.pool[0].n; ++i)
     {
         //Le o ponteiro
-        fread(buffer->pool[0]->filho[i], sizeof(No), 1, indice);
+        fread(&buffer.pool[0].filho[i], sizeof(int), 1, indice);
         //Le o cod
-        fread(buffer->pool[0]->cod[i], sizeof(int), 1, indice);
+        fread(&buffer.pool[0].cod[i], sizeof(int), 1, indice);
         //Le o rnn
-        fread(buffer->pool[0]->rnn[i], sizeof(int), 1, indice); 
+        fread(&buffer.pool[0].rnn[i], sizeof(int), 1, indice); 
     }
     //Le o ultimo ponteiro
-    fread(buffer->pool[0]->filho[9], sizeof(No), 1, indice);
+    fread(&buffer.pool[0].filho[9], sizeof(int), 1, indice);
 
     fclose(indice);
     //Retorna o bufferPool
     return buffer;
 }   
 
-//Funcao que retorna o 
-No *bufferGetNo(bufferPool buffer, int cod)
+
+/*Funcao que busca o No na pagina do arquivo de indice, a partir do rnn requerido*/
+No *indexGetNo(int rnn)
+{
+    //Abre o arquivo de indice
+    FILE *indice;
+    indice = fopen("indice.dat", "rb");
+
+    //Coloca o fp no local do rnn
+    fseek(indice, (sizeof(char) + (2*sizeof(int)) + NODE_SIZE * rnn), SEEK_SET);
+    //Cria o no e copia os dados
+    No *node = (No*) malloc(sizeof(No));
+    //Copia os elementos
+    fread(&node->n, sizeof(int), 1, indice);
+    for (int i = 0; i < node->n; ++i)
+    {
+        //Le o ponteiro
+        fread(&node->filho[i], sizeof(int), 1, indice);
+        //Le o cod
+        fread(&node->cod[i], sizeof(int), 1, indice);
+        //Le o rnn
+        fread(&node->rnn[i], sizeof(int), 1, indice); 
+    }
+    //Le o ultimo ponteiro
+    fread(&node->filho[9], sizeof(int), 1, indice);
+    //Fecha o arquivo e retorna o no
+    fclose(indice);
+    return node;
+}
+
+
+/*Funcao que retorna o no do buffer pool necessario*/
+No *bufferGetNo(bufferPool *buffer, int rnn)
 {   
     //Busca em cada elemento 
     for (int i = 0; i < 5; ++i)
     {
-        //SE FOR A PAGINA QUE QUEREMOS
-        if(buffer->pool[i]->codINEP == cod)
+        //Se for a pagina que queremos
+        if(*(buffer->pool[i].cod) == rnn)
         {
-            return buffer->pool[i];
+            hit++;
+            return &buffer->pool[i];
         }
+    }   
+    //Se nao encontrar busca no arquivo indice
+    fault++;
+    //Copia o no da memoria
+    No *aux =  (No*) malloc(sizeof(No));
+    aux = indexGetNo(rnn);
+    buffer->pool[mru].n = aux->n;
+    for (int i = 0; i < 9; ++i)
+    {
+        buffer->pool[mru].filho[i] = aux->filho[i];
+        buffer->pool[mru].cod[i] = aux->cod[i];
+        buffer->pool[mru].rnn[i] = aux->rnn[i];
     }
-}
+    buffer->pool[mru].filho[9] = aux->filho[9];
+    return &buffer->pool[mru];
+}   
+
 
 
 
