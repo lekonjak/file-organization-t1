@@ -28,6 +28,18 @@ enum {
     UF
 };
 
+struct iheader {
+    char status;
+    int root, height, last;
+};
+
+struct node {
+    Node *node[10];
+    int key[9], nKeys; 
+};
+
+
+
 #define COD_INEP_SIZE sizeof(int)
 #define UF_SIZE 2
 #define DATA_ATIV_SIZE 10
@@ -44,15 +56,19 @@ enum {
  * No arquivo de entrada, ";;" indica um campo "null". Usando strtok os campos 'null' seriam ignorados
  */
 void csv2bin(char *filename) {
-    FILE *infile = NULL, *outfile = NULL;
+    FILE *infile = NULL, *outfile = NULL, *index = NULL;
     char *linha = NULL;
     char **fields = NULL;
     int regSize = 0;
+    // starting file variables
     Registro r = {0};
     Header h = {0};
+    // starting index variables
+    Iheader ih = {0};
+    Node n = {0};
 
     infile = fopen(filename, "r");
-
+    
     if(infile == NULL) {
         fprintf(stdout, "Falha no carregamento do arquivo\n");
         return;
@@ -64,9 +80,21 @@ void csv2bin(char *filename) {
         fprintf(stdout, "Falha no carregamento do arquivo\n");
         return;
     }
+    
+    index = fopen("index.bin", "wb");
+
+    if(index == NULL) {
+        fprintf(stdout, "Falha no carregamento do arquivo\n");
+        return;
+    }
 
     h.status = 0;
     h.stackTop = -1;
+
+    ih.status = 0;
+    ih.root = -1;
+    ih.height = -1;
+    ih.last = -1;
 
     //Write header
     fwrite(&h.status, sizeof(char), 1, outfile);
@@ -118,9 +146,16 @@ void csv2bin(char *filename) {
 
     fprintf(stdout, "Arquivo carregado.\n");
 
+//    //Write iheader   we need to build the tree before setting index header - but it's what supposed to be in index start
+//    fwrite(&ih.status, sizeof(char), 1, index);
+//    fwrite(&ih.root, sizeof(int), 1, index);
+//    fwrite(&ih.height, sizeof(int), 1, index);
+//    fwrite(&ih.last, sizeof(int), 1, index);
+    
     //Fechar arquivos de entrada e saída
     fclose(infile);
     fclose(outfile);
+    fclose(index);
 }
 
 /* Retorna o tamanho do arquivo fp
