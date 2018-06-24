@@ -999,5 +999,8 @@ void busca(bufferPool *buffer, int busca)
             }
         }
     }
+
+    //Atualiza arquivo de Hit e Fault do BufferPool
+    bufferInfo();
 }
 
