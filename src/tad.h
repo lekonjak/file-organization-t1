@@ -9,6 +9,14 @@ typedef struct registro Registro;
 
 typedef struct header Header;
 
+typedef struct iheader Iheader;
+
+typedef struct no No;
+
+typedef struct BufferPool bufferPool;
+
+
+
 int fpeek(FILE *fp);
 int intCmp(void *a, void *b);
 int sstrCmp(void *a, void *b);

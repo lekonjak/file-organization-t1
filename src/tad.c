@@ -28,16 +28,23 @@ enum {
     UF
 };
 
-typedef struct no{
+struct iheader{
+        // this should be on index file
+    char status;
+    int root, height, lastrrn;
+        // this doesnt
+};
+
+struct no{
     int n;
     int filho[10];
     int cod[9];
     int rnn[9];
-}No;
+};
 
-typedef struct BufferPool{
+struct BufferPool{
     No pool[5];
-}bufferPool;
+};
 
 #define COD_INEP_SIZE sizeof(int)
 #define UF_SIZE 2*sizeof(char)
@@ -64,12 +71,13 @@ int mru;
  * No arquivo de entrada, ";;" indica um campo "null". Usando strtok os campos 'null' seriam ignorados
  */
 void csv2bin(char *filename) {
-    FILE *infile = NULL, *outfile = NULL;
+    FILE *infile = NULL, *outfile = NULL, *index = NULL;
     char *linha = NULL;
     char **fields = NULL;
     int regSize = 0;
     Registro r = {0};
     Header h = {0};
+    Iheader ih = {0};
 
     infile = fopen(filename, "r");
 
@@ -85,12 +93,29 @@ void csv2bin(char *filename) {
         return;
     }
 
+    index = fopen("index.bin", "wb");
+
+    if(index == NULL) {
+        fprintf(stdout, "Falha no carregamento do arquivo\n");
+        return;
+    }
+
+
     h.status = 0;
     h.stackTop = -1;
+
+    ih.status = 0;
+    ih.root = ih.height = ih.lastrrn = -1;
 
     //Write header
     fwrite(&h.status, sizeof(char), 1, outfile);
     fwrite(&h.stackTop, sizeof(int), 1, outfile);
+
+    //Write index header
+    fwrite(&ih.status, sizeof(char), 1, index);
+    fwrite(&ih.root, sizeof(int), 1, index);
+    fwrite(&ih.height, sizeof(int), 1, index);
+    fwrite(&ih.lastrrn, sizeof(int), 1, index);
 
     while(!feof(infile)) {
         linha = freadline(infile);
