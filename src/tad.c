@@ -75,12 +75,12 @@ void csv2bin(char *filename) {
     char *linha = NULL;
     char **fields = NULL;
     int regSize = 0;
+    // starting file variables
     Registro r = {0};
     Header h = {0};
     Iheader ih = {0};
-
     infile = fopen(filename, "r");
-
+    
     if(infile == NULL) {
         fprintf(stdout, "Falha no carregamento do arquivo\n");
         return;
@@ -89,6 +89,13 @@ void csv2bin(char *filename) {
     outfile = fopen("output.dat", "wb");
 
     if(outfile == NULL) {
+        fprintf(stdout, "Falha no carregamento do arquivo\n");
+        return;
+    }
+    
+    index = fopen("index.bin", "wb");
+
+    if(index == NULL) {
         fprintf(stdout, "Falha no carregamento do arquivo\n");
         return;
     }
@@ -163,9 +170,16 @@ void csv2bin(char *filename) {
 
     fprintf(stdout, "Arquivo carregado.\n");
 
+//    //Write iheader   we need to build the tree before setting index header - but it's what supposed to be in index start
+//    fwrite(&ih.status, sizeof(char), 1, index);
+//    fwrite(&ih.root, sizeof(int), 1, index);
+//    fwrite(&ih.height, sizeof(int), 1, index);
+//    fwrite(&ih.last, sizeof(int), 1, index);
+    
     //Fechar arquivos de entrada e saída
     fclose(infile);
     fclose(outfile);
+    fclose(index);
 }
 
 /* Retorna o tamanho do arquivo fp
