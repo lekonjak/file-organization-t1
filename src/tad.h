@@ -9,6 +9,8 @@ typedef struct registro Registro;
 
 typedef struct header Header;
 
+typedef struct btree Btree;
+
 typedef struct iheader Iheader;
 
 typedef struct no No;
@@ -21,6 +23,9 @@ int sstrCmp(void *a, void *b);
 
 void *maybeConvert(char *c, char d);
 void *selectCmp(char cat);
+
+Btree *createBtree();
+void insertBtree(int CODInep, int rrn, FILE *index);
 
 void add2bin(char *argv[]);
 void bin2out(void); // working here

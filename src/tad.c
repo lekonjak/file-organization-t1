@@ -36,14 +36,22 @@ struct iheader{
 };
 
 struct no{
+        // 
     int n;
     int filho[10];
     int cod[9];
     int rnn[9];
+        //
+   int parent;
 };
 
 struct BufferPool{
     No pool[5];
+};
+
+struct btree{
+    No root;
+    Iheader ih;
 };
 
 #define COD_INEP_SIZE sizeof(int)
@@ -70,6 +78,15 @@ int mru;
  * Ps: strsep é mais "robusta" que strtok pois suporta delimitadores consecutivos.
  * No arquivo de entrada, ";;" indica um campo "null". Usando strtok os campos 'null' seriam ignorados
  */
+Btree *createBtree(){
+    Btree *btree = (Btree*) malloc (sizeof(Btree));
+
+    btree->ih.status = 0;
+    btree->ih.root = btree->ih.height = btree->ih.lastrrn = -1;
+    
+    return btree;
+}
+
 void csv2bin(char *filename) {
     FILE *infile = NULL, *outfile = NULL, *index = NULL;
     char *linha = NULL;
@@ -78,7 +95,9 @@ void csv2bin(char *filename) {
     // starting file variables
     Registro r = {0};
     Header h = {0};
-    Iheader ih = {0};
+
+    Btree *btree = createBtree();
+
     infile = fopen(filename, "r");
     
     if(infile == NULL) {
@@ -111,18 +130,15 @@ void csv2bin(char *filename) {
     h.status = 0;
     h.stackTop = -1;
 
-    ih.status = 0;
-    ih.root = ih.height = ih.lastrrn = -1;
-
-    //Write header
+       //Write header
     fwrite(&h.status, sizeof(char), 1, outfile);
     fwrite(&h.stackTop, sizeof(int), 1, outfile);
 
     //Write index header
-    fwrite(&ih.status, sizeof(char), 1, index);
-    fwrite(&ih.root, sizeof(int), 1, index);
-    fwrite(&ih.height, sizeof(int), 1, index);
-    fwrite(&ih.lastrrn, sizeof(int), 1, index);
+    fwrite(&btree->ih.status, sizeof(char), 1, index);
+    fwrite(&btree->ih.root, sizeof(int), 1, index);
+    fwrite(&btree->ih.height, sizeof(int), 1, index);
+    fwrite(&btree->ih.lastrrn, sizeof(int), 1, index);
 
     while(!feof(infile)) {
         linha = freadline(infile);
@@ -180,6 +196,8 @@ void csv2bin(char *filename) {
     fclose(infile);
     fclose(outfile);
     fclose(index);
+
+    free(btree);
 }
 
 /* Retorna o tamanho do arquivo fp
