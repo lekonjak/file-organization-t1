@@ -25,7 +25,7 @@ void *maybeConvert(char *c, char d);
 void *selectCmp(char cat);
 
 Btree *createBtree();
-void insertBtree(int CODInep, int rrn, FILE *index);
+void insertBtree(int codINEP, int rrn, FILE *index);
 
 void add2bin(char *argv[]);
 void bin2out(void); // working here
