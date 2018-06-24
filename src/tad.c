@@ -52,7 +52,7 @@ struct BufferPool{
 #define FIX_FIELDS_SIZE UF_SIZE + DATA_ATIV_SIZE + COD_INEP_SIZE
 #define REG_SIZE 87*sizeof(char)
 #define NODE_SIZE 116*sizeof(char)
-#define NODE_HEADER_SIZE sizeof(char) + (2*sizeof(int)
+#define NODE_HEADER_SIZE sizeof(char) + (3*sizeof(int))
 
 //Page hit e Page Faults
 int fault = 0;
@@ -813,7 +813,7 @@ bufferPool* criaBuffer()
     fread(&root_rnn, sizeof(int), 1, indice);
 
     //Busca a raiz
-    fseek(indice, (NODE_SIZE*root_rnn) + sizeof(int), SEEK_CUR);
+    fseek(indice, (NODE_SIZE*root_rnn) + 2*(sizeof(int)), SEEK_CUR);
 
     //Copia os elementos
     fread(&buffer->pool[0].n, sizeof(int), 1, indice);
@@ -843,7 +843,7 @@ No *indexGetNo(int rnn)
     indice = fopen("indice.dat", "rb");
 
     //Coloca o fp no local do rnn
-    fseek(indice, (sizeof(char) + (2*sizeof(int)) + NODE_SIZE * rnn), SEEK_SET);
+    fseek(indice, (NODE_HEADER_SIZE + NODE_SIZE * rnn), SEEK_SET);
     //Cria o no e copia os dados
     No *node = (No*) malloc(sizeof(No));
     //Copia os elementos
@@ -865,25 +865,31 @@ No *indexGetNo(int rnn)
 }
 
 
-/*Funcao que retorna o no do buffer pool necessario*/
+/*Funcao que retorna o no do buffer pool necessario, com rnn igual a -1, retorna a raiz*/
 No *bufferGetNo(bufferPool *buffer, int rnn)
 {   
+    if(rnn = -1)
+        return &buffer->pool[mru];
+
     //Busca em cada elemento 
-    for (int i = 0; i < 5; ++i)
+    for (int i = 1; i < 5; ++i)
     {
         //Se for a pagina que queremos
         if(*(buffer->pool[i].cod) == rnn)
         {
             hit++;
+            mru = i;
             return &buffer->pool[i];
         }
     }   
+
     //Se nao encontrar busca no arquivo indice
     fault++;
     //Copia o no da memoria
     No *aux =  (No*) malloc(sizeof(No));
     aux = indexGetNo(rnn);
     buffer->pool[mru].n = aux->n;
+
     for (int i = 0; i < 9; ++i)
     {
         buffer->pool[mru].filho[i] = aux->filho[i];
@@ -891,6 +897,7 @@ No *bufferGetNo(bufferPool *buffer, int rnn)
         buffer->pool[mru].rnn[i] = aux->rnn[i];
     }
     buffer->pool[mru].filho[9] = aux->filho[9];
+
     return &buffer->pool[mru];
 }   
 
@@ -902,7 +909,7 @@ void bufferAtualizaNo(bufferPool *buffer, No *atualizar, int rnn)
     indice = fopen("indice.dat", "rb");
 
     //Busca o No no BufferPool
-    for (int i = 0; i < 5; ++i)
+    for (int i = 1; i < 5; ++i)
     {
         //Se for o mesmo
         if(*(buffer->pool[i].cod) == rnn)
@@ -910,7 +917,7 @@ void bufferAtualizaNo(bufferPool *buffer, No *atualizar, int rnn)
             //Atualiza no BufferPool
             memcpy(&(buffer->pool[i]), atualizar, sizeof(No));
             //Atualiza no Arquivo de Indice
-            fseek(indice, (sizeof(char) + (2*sizeof(int))), SEEK_SET);
+            fseek(indice, (NODE_HEADER_SIZE) + rnn * NODE_SIZE, SEEK_SET);
 
             //Copia os elementos
             fwrite(&atualizar->n, sizeof(int), 1, indice);
@@ -932,7 +939,7 @@ void bufferAtualizaNo(bufferPool *buffer, No *atualizar, int rnn)
 
     fclose(indice);
 }
-
+/*
 /*Funcao de busca na arvore B*/
 void busca(bufferPool *buffer, int busca)
 {
@@ -942,8 +949,55 @@ void busca(bufferPool *buffer, int busca)
     arquivo = fopen("output.dat", "rb");
     indice = fopen("indice.dat", "rb");
 
-    //Cria o Buffer Pool
-    
-}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                )
+    if(arquivo == NULL || indice == NULL)
+    {
+        fprintf(stdout, "Falha no carregamento do arquivo\n");
+    }
 
+    //Cria o Buffer Pool
+    buffer = criaBuffer();
+
+    //Recebe No raiz
+    No *node = bufferGetNo(buffer, -1);
+
+    //Busca na chave
+    for(int i = 0; i < node->n; i++)
+    {
+        //Busca a esquerda
+        if(node->cod[i] < busca)
+        {
+            //Se nao existir
+            if(node->filho[i] == -1)
+            {
+               fprintf(stdout, "Registro inexistente.\n"); 
+               return;
+            }
+            else 
+            {
+                node = bufferGetNo(buffer, node->filho[i]);      
+            }
+        }
+        //Chave encontrada
+        else if(node->cod[i] == busca)
+        {
+            //Printa o registro
+            bin2outRRN(node->rnn[i]);
+            return;
+        }
+        //Busca a direita
+        else 
+        {
+            //Se nao existir
+            if(node->filho[i+1] == -1)
+            {
+               fprintf(stdout, "Registro inexistente.\n");
+               return;
+            }
+            else 
+            {
+                node = bufferGetNo(buffer, node->filho[i+1]);      
+            }
+        }
+    }
+}
 
