@@ -1,5 +1,5 @@
 //Mesma coisa dos ifguards, só que mais nice
-#pragma once
+//#pragma once
 
 #include <stdlib.h>
 #include <stdio.h>

@@ -45,6 +45,7 @@ typedef struct BufferPool{
 #define FIX_FIELDS_SIZE UF_SIZE + DATA_ATIV_SIZE + COD_INEP_SIZE
 #define REG_SIZE 87*sizeof(char)
 #define NODE_SIZE 116*sizeof(char)
+#define NODE_HEADER_SIZE sizeof(char) + (2*sizeof(int)
 
 //Page hit e Page Faults
 int fault = 0;
@@ -854,6 +855,44 @@ No *bufferGetNo(bufferPool *buffer, int rnn)
     return &buffer->pool[mru];
 }   
 
+/*Funcao que atualiza o no no buffer Pool*/
+void bufferAtualizaNo(bufferPool *buffer, No *atualizar, int rnn)
+{
+    //Abre o arquivo de indice
+    FILE *indice;
+    indice = fopen("indice.dat", "rb");
+
+    //Busca o No no BufferPool
+    for (int i = 0; i < 5; ++i)
+    {
+        //Se for o mesmo
+        if(*(buffer->pool[i].cod) == rnn)
+        {
+            //Atualiza no BufferPool
+            memcpy(&(buffer->pool[i]), atualizar, sizeof(No));
+            //Atualiza no Arquivo de Indice
+            fseek(indice, (sizeof(char) + (2*sizeof(int))), SEEK_SET);
+
+            //Copia os elementos
+            fwrite(&atualizar->n, sizeof(int), 1, indice);
+            for (int i = 0; i < atualizar->n; ++i)
+            {
+                //Escreve o ponteiro
+                fwrite(&atualizar->filho[i], sizeof(int), 1, indice);
+                //Escreve o cod
+                fwrite(&atualizar->cod[i], sizeof(int), 1, indice);
+                //Escreve o rnn
+                fwrite(&atualizar->rnn[i], sizeof(int), 1, indice); 
+            }
+            //Escreve o ultimo ponteiro
+            fwrite(&atualizar->filho[9], sizeof(int), 1, indice);
+
+            break;
+        }
+    }
+
+    fclose(indice);
+}
 
 
 
