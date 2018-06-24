@@ -17,6 +17,8 @@ typedef struct no No;
 
 typedef struct BufferPool bufferPool;
 
+typedef struct pair Pair;
+
 int fpeek(FILE *fp);
 int intCmp(void *a, void *b);
 int sstrCmp(void *a, void *b);
@@ -25,7 +27,10 @@ void *maybeConvert(char *c, char d);
 void *selectCmp(char cat);
 
 Btree *createBtree();
-void insertBtree(int CODInep, int rrn, FILE *index);
+void insertBtree(int codINEP, int rrn, FILE *index);
+void split1to2(No *no, int codINEP, int rrn);
+
+Pair *insertwithoverflow(int *cod[9], int *rrn[9]);
 
 void add2bin(char *argv[]);
 void bin2out(void); // working here

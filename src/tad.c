@@ -40,9 +40,9 @@ struct no{
     int n;
     int filho[10];
     int cod[9];
-    int rnn[9];
+    int rrn[9];
         //
-   int parent;
+    int parent;
 };
 
 struct BufferPool{
@@ -54,13 +54,17 @@ struct btree{
     Iheader ih;
 };
 
+struct pair{
+    int rrn, cod;
+};
+
 #define COD_INEP_SIZE sizeof(int)
 #define UF_SIZE 2*sizeof(char)
 #define DATA_ATIV_SIZE 10*sizeof(char)
 #define FIX_FIELDS_SIZE UF_SIZE + DATA_ATIV_SIZE + COD_INEP_SIZE
 #define REG_SIZE 87*sizeof(char)
 #define NODE_SIZE 116*sizeof(char)
-#define NODE_HEADER_SIZE sizeof(char) + (2*sizeof(int)
+#define NODE_HEADER_SIZE sizeof(char) + (3*sizeof(int))   
 
 //Page hit e Page Faults
 int fault = 0;
@@ -85,6 +89,31 @@ Btree *createBtree(){
     btree->ih.root = btree->ih.height = btree->ih.lastrrn = -1;
     
     return btree;
+}
+
+void split1to2(No *no, int codINEP, int rrn){
+    No new = {0}, newroot = {0};
+    int i = 0;
+    while(i < 10){  
+            // moving sons
+        new.filho[i] = no->filho[i+5];
+        new.filho[i+1] = no->filho[i+1+5];
+            // moving data rrn and key
+        new.rrn[i] = no->rrn[i+5];
+        new.cod[i] = no->cod[i+5];
+    }
+        // resetting new n's
+    no->n = no->n - 4;
+    new.n = 4;
+    
+        // allocating new element
+    new.rrn[new.n] = rrn;
+    new.cod[new.n] = codINEP;
+
+        // incrementing n 
+    new.n++;
+
+        //
 }
 
 void csv2bin(char *filename) {
@@ -590,12 +619,12 @@ void add2bin(char *argv[]) {
 }
 
 /* Funcao de update, recebe o argumento do console,
- * busca o registro por RNN e o troca seus campos pelos
+ * busca o registro por rrn e o troca seus campos pelos
  * campos do argumento
  */
 void updateBin(char *argv[]) {
-	//Converte o rnn
-	int rnn = atoi(argv[2]);
+	//Converte o rrn
+	int rrn = atoi(argv[2]);
 
     //Copia os dados
     Registro r = {0};
@@ -615,14 +644,14 @@ void updateBin(char *argv[]) {
         return;
     }
 
-    //Verifica se e um rnn plausivel, se nao for, relata o erro
-    if(rnn* REG_SIZE > eof(current)){
+    //Verifica se e um rrn plausivel, se nao for, relata o erro
+    if(rrn* REG_SIZE > eof(current)){
         printf("Registro inexistente.\n");
         return;
     }
 
-    //Vai para o rnn
-    fseek(current, 5+(rnn* REG_SIZE) , SEEK_SET);
+    //Vai para o rrn
+    fseek(current, 5+(rrn* REG_SIZE) , SEEK_SET);
     int status;
     fread(&status, sizeof(int), 1, current);
 
@@ -825,13 +854,13 @@ bufferPool criaBuffer()
     FILE *indice;
     indice = fopen("indice.dat", "rb");
 
-    //Busca o rnn local da raiz
-    int root_rnn;
+    //Busca o rrn local da raiz
+    int root_rrn;
     fseek(indice, sizeof(char), SEEK_SET);
-    fread(&root_rnn, sizeof(int), 1, indice);
+    fread(&root_rrn, sizeof(int), 1, indice);
 
     //Busca a raiz
-    fseek(indice, (NODE_SIZE*root_rnn) + sizeof(int), SEEK_CUR);
+    fseek(indice, (NODE_SIZE*root_rrn) + sizeof(int), SEEK_CUR);
 
     //Copia os elementos
     fread(&buffer.pool[0].n, sizeof(int), 1, indice);
@@ -841,8 +870,8 @@ bufferPool criaBuffer()
         fread(&buffer.pool[0].filho[i], sizeof(int), 1, indice);
         //Le o cod
         fread(&buffer.pool[0].cod[i], sizeof(int), 1, indice);
-        //Le o rnn
-        fread(&buffer.pool[0].rnn[i], sizeof(int), 1, indice); 
+        //Le o rrn
+        fread(&buffer.pool[0].rrn[i], sizeof(int), 1, indice); 
     }
     //Le o ultimo ponteiro
     fread(&buffer.pool[0].filho[9], sizeof(int), 1, indice);
@@ -853,15 +882,15 @@ bufferPool criaBuffer()
 }   
 
 
-/*Funcao que busca o No na pagina do arquivo de indice, a partir do rnn requerido*/
-No *indexGetNo(int rnn)
+/*Funcao que busca o No na pagina do arquivo de indice, a partir do rrn requerido*/
+No *indexGetNo(int rrn)
 {
     //Abre o arquivo de indice
     FILE *indice;
     indice = fopen("indice.dat", "rb");
 
-    //Coloca o fp no local do rnn
-    fseek(indice, (sizeof(char) + (2*sizeof(int)) + NODE_SIZE * rnn), SEEK_SET);
+    //Coloca o fp no local do rrn
+    fseek(indice, (sizeof(char) + (2*sizeof(int)) + NODE_SIZE * rrn), SEEK_SET);
     //Cria o no e copia os dados
     No *node = (No*) malloc(sizeof(No));
     //Copia os elementos
@@ -872,8 +901,8 @@ No *indexGetNo(int rnn)
         fread(&node->filho[i], sizeof(int), 1, indice);
         //Le o cod
         fread(&node->cod[i], sizeof(int), 1, indice);
-        //Le o rnn
-        fread(&node->rnn[i], sizeof(int), 1, indice); 
+        //Le o rrn
+        fread(&node->rrn[i], sizeof(int), 1, indice); 
     }
     //Le o ultimo ponteiro
     fread(&node->filho[9], sizeof(int), 1, indice);
@@ -884,13 +913,13 @@ No *indexGetNo(int rnn)
 
 
 /*Funcao que retorna o no do buffer pool necessario*/
-No *bufferGetNo(bufferPool *buffer, int rnn)
+No *bufferGetNo(bufferPool *buffer, int rrn)
 {   
     //Busca em cada elemento 
     for (int i = 0; i < 5; ++i)
     {
         //Se for a pagina que queremos
-        if(*(buffer->pool[i].cod) == rnn)
+        if(*(buffer->pool[i].cod) == rrn)
         {
             hit++;
             return &buffer->pool[i];
@@ -900,20 +929,20 @@ No *bufferGetNo(bufferPool *buffer, int rnn)
     fault++;
     //Copia o no da memoria
     No *aux =  (No*) malloc(sizeof(No));
-    aux = indexGetNo(rnn);
+    aux = indexGetNo(rrn);
     buffer->pool[mru].n = aux->n;
     for (int i = 0; i < 9; ++i)
     {
         buffer->pool[mru].filho[i] = aux->filho[i];
         buffer->pool[mru].cod[i] = aux->cod[i];
-        buffer->pool[mru].rnn[i] = aux->rnn[i];
+        buffer->pool[mru].rrn[i] = aux->rrn[i];
     }
     buffer->pool[mru].filho[9] = aux->filho[9];
     return &buffer->pool[mru];
 }   
 
 /*Funcao que atualiza o no no buffer Pool*/
-void bufferAtualizaNo(bufferPool *buffer, No *atualizar, int rnn)
+void bufferAtualizaNo(bufferPool *buffer, No *atualizar, int rrn)
 {
     //Abre o arquivo de indice
     FILE *indice;
@@ -923,7 +952,7 @@ void bufferAtualizaNo(bufferPool *buffer, No *atualizar, int rnn)
     for (int i = 0; i < 5; ++i)
     {
         //Se for o mesmo
-        if(*(buffer->pool[i].cod) == rnn)
+        if(*(buffer->pool[i].cod) == rrn)
         {
             //Atualiza no BufferPool
             memcpy(&(buffer->pool[i]), atualizar, sizeof(No));
@@ -938,8 +967,8 @@ void bufferAtualizaNo(bufferPool *buffer, No *atualizar, int rnn)
                 fwrite(&atualizar->filho[i], sizeof(int), 1, indice);
                 //Escreve o cod
                 fwrite(&atualizar->cod[i], sizeof(int), 1, indice);
-                //Escreve o rnn
-                fwrite(&atualizar->rnn[i], sizeof(int), 1, indice); 
+                //Escreve o rrn
+                fwrite(&atualizar->rrn[i], sizeof(int), 1, indice); 
             }
             //Escreve o ultimo ponteiro
             fwrite(&atualizar->filho[9], sizeof(int), 1, indice);
